@@ -104,16 +104,18 @@
                ele.className = 'tile';
                board_struct[_x][_y] = null;
                prisonerTaken = true;
+
+               // work in progress - attempt to capture all affected pieces
+               // works in some conditions... does not work in other conditions =(
+               // for (var _idx in liberties.group) {
+               //     var __x = liberties.group[_idx][0];
+               //     var __y = liberties.group[_idx][1];
+               //     var ele = document.querySelector('li[data-x="' + __x + '"][data-y="' + __y + '"]');
+               //     ele.className = 'tile';
+               //     board_struct[__x][__y] = null;
+               // }
+
            }
-           // work in progress =(
-           // for (var _idx in liberties.group) {
-           //     var __x = liberties.group[_idx][0];
-           //     var __y = liberties.group[_idx][1];
-           //     var ele = document.querySelector('li[data-x="' + __x + '"][data-y="' + __y + '"]');
-           //     ele.className = 'tile';
-           //     board_struct[__x][__y] = null;
-           //     prisonerTaken = true;
-           // }
        }
 
        return prisonerTaken;
@@ -317,6 +319,10 @@
    // complicated Ko position
    // board_struct = JSON.parse("[[1,1,1,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,0,0,0,0,0,0,null],[null,null,0,1,1,1,1,0,null],[null,null,0,1,0,null,1,0,null],[null,null,0,1,1,1,1,0,null],[null,null,0,0,0,0,0,0,0],[null,null,null,null,null,null,null,0,0],[1,1,1,1,1,1,1,1,1]]");
    // playerState = 0;
+
+   // complicated Ko position 2
+   // board_struct = JSON.parse("[[1,1,1,null,null,null,null,null,0],[null,null,null,null,null,null,null,null,null],[null,null,0,0,0,0,0,0,null],[null,null,0,1,1,1,1,0,null],[null,null,0,1,null,null,1,0,null],[null,null,0,1,1,1,1,0,null],[null,null,0,0,0,0,0,0,0],[null,null,null,null,null,null,null,0,0],[1,1,1,1,1,1,1,1,1]]");
+   // playerState = 1;
 
    // some straight lines
    // board_struct = JSON.parse("[[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,0,0,0,1,1,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null]]");
