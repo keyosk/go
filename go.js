@@ -60,48 +60,13 @@
                ul.appendChild(_li);
            }
 
-           //Insert fake last column to allow the circles to lie on vertices
-
-           // var _li = document.createElement('li');
-           // var tile_class = 'fake-tile last'
-           // _li.className = tile_class;
-           // _li.innerHTML = '<div>&nbsp;</div>';
-           // ul.appendChild(_li);
-
-           //Insert fake last column to allow the circles to lie on vertices
-
            li.appendChild(ul);
            board_ele.appendChild(li);
        }
 
-       //Insert fake last row to allow the circles to lie on vertices
-
-       // var li = document.createElement('li');
-
-       // var ul = document.createElement('ul');
-
-       // for (var j in struct[i]) {
-       //     var _li = document.createElement('li');
-       //     var tile_class = 'fake-tile';
-       //     _li.className = tile_class;
-       //     _li.innerHTML = '<div>&nbsp;</div>';
-       //     ul.appendChild(_li);
-       // }
-
-       //Insert fake last column to allow the circles to lie on vertices
-
-       // var _li = document.createElement('li');
-       // var tile_class = 'fake-tile last'
-       // _li.className = tile_class;
-       // _li.innerHTML = '<div>&nbsp;</div>';
-       // ul.appendChild(_li);
-
-       //Insert fake last column to allow the circles to lie on vertices
-
        li.appendChild(ul);
        board_ele.appendChild(li);
 
-       //Insert fake last row to allow the circles to lie on vertices
    };
 
    var tryToTakePrisoners = function(x, y) {
@@ -137,13 +102,6 @@
                console.error('%s,%s and all of it and its adjacent squares are DEAD!', _x, _y);
                var ele = document.querySelector('li[data-x="' + _x + '"][data-y="' + _y + '"]');
                ele.className = 'tile';
-
-               // var className = 'tile ' + getColorClass(playerState);
-
-               // if (y === board_size - 1) {
-               // className += ' last';
-               // }
-
                board_struct[_x][_y] = null;
                prisonerTaken = true;
            }
@@ -181,11 +139,6 @@
        ], adjacentPositions, playerState).liberties).length;
 
        console.log('Find liberty recursions : %s', findLibertyRecurseSafety);
-
-       // if (recursed.state) {
-       //  liberties--;
-       // }
-
 
        board_struct[x][y] = playerState;
 
@@ -310,31 +263,23 @@
 
        if (findDown) {
            var positionDown = board_struct[x + 1][y];
-           // if (positionDown !== null) {
            positions.push([x + 1, y]);
-           // }
        }
 
        if (findUp) {
            var positionUp = board_struct[x - 1][y];
-           // if (positionUp !== null) {
            positions.push([x - 1, y]);
-           // }
        }
 
        if (findRight) {
            var positionRight = board_struct[x][y + 1];
-           // if (positionRight !== null) {
            positions.push([x, y + 1]);
-           // }
        }
 
 
        if (findLeft) {
            var positionLeft = board_struct[x][y - 1];
-           // if (positionLeft !== null) {
            positions.push([x, y - 1]);
-           // }
        }
 
        return positions;
