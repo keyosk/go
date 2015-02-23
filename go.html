@@ -40,11 +40,15 @@
         border-left: 2px solid brown;
     }
     li.tile.black div {
-        background-color: black;
+        background-color: black !important;
     }
     li.tile.white div {
-        background-color: white;
+        background-color: white !important;
     }
+    li.tile.white div span {
+      color: black;
+    }
+
     li.tile div {
         width: 50px;
         height: 50px;
@@ -55,8 +59,12 @@
         left: -25px;
         text-align: center;
     }
+    li.tile div:hover {
+        background-color: rgba(255,255,255, .4);
+        cursor: pointer;
+    }
     li.tile div span {
-        color: green;
+        color: white;
         top: 16px;
         position: relative;
     }
