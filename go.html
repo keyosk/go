@@ -6,9 +6,6 @@
     #board {
         padding:30px;
         background-color:tan;
-        width: 530px;
-        height: 450px;
-        overflow: hidden;
     }
     li {
         list-style: none;
@@ -33,11 +30,13 @@
         /* entire left column */
         border-left: 4px solid brown;
     }
-    ul > li > ul > li.tile:last-child {
+    ul > li > ul > li.tile:nth-last-child(2) {
+        border-right: 4px solid brown;
+    }
+    ul > li > ul > li.tile:nth-last-child(1) {
         /* entire right column */
         background: transparent;
         border: 0;
-        border-left: 2px solid brown;
     }
     li.tile.black div {
         background-color: black !important;
@@ -68,10 +67,28 @@
         top: 16px;
         position: relative;
     }
+        
     ul > li:last-child ul li.tile {
         /* Final row, add some fake spacing with border */
         border-left:2px solid tan;
+        border-top: 0;
     }
+
+    ul > li:nth-last-child(2) ul li.tile {
+        border-bottom: 4px solid brown;
+    }
+
+
+    ul > li:nth-last-child(2) ul li.tile:last-child {
+        border-bottom: none;
+    }
+
+    ul > li:last-child ul li.tile:nth-last-child(2) {
+        /* Final row, add some fake spacing with border */
+        border-left:2px solid tan;
+        border-right: 0;
+    }
+
     </style>
 </head>
 
