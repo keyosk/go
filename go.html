@@ -1,0 +1,80 @@
+<html>
+
+<head>
+    <title>Go</title>
+    <style type="text/css">
+    #board {
+        padding:30px;
+        background-color:tan;
+        width: 530px;
+        height: 450px;
+        overflow: hidden;
+    }
+    li {
+        list-style: none;
+    }
+    li.tile {
+        width: 50px;
+        height: 50px;
+        background-color: tan;
+        display: inline-block;
+        border: 2px solid brown;
+        position: relative;
+    }
+    ul > li:first-child > ul > li.tile {
+        border-top: 4px solid brown;
+    }
+    ul > li:last-child > ul > li.tile {
+        background: transparent;
+        border: 2px solid tan;
+        border-top: 2px solid brown;
+    }
+    ul > li > ul > li.tile:first-child {
+        /* entire left column */
+        border-left: 4px solid brown;
+    }
+    ul > li > ul > li.tile:last-child {
+        /* entire right column */
+        background: transparent;
+        border: 0;
+        border-left: 2px solid brown;
+    }
+    li.tile.black div {
+        background-color: black;
+    }
+    li.tile.white div {
+        background-color: white;
+    }
+    li.tile div {
+        width: 50px;
+        height: 50px;
+        border-radius: 30px;
+        position: relative;
+        top: -25px;
+        z-index: 10;
+        left: -25px;
+        text-align: center;
+    }
+    li.tile div span {
+        color: green;
+        top: 16px;
+        position: relative;
+    }
+    ul > li:last-child ul li.tile {
+        /* Final row, add some fake spacing with border */
+        border-left:2px solid tan;
+    }
+    </style>
+</head>
+
+<body>
+    <ul id="board"></ul>
+
+    <script src="http://cdn.pubnub.com/pubnub-3.7.8.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.1/underscore.js" type="text/javascript"></script>
+
+    <script src="go.js" type="text/javascript"></script>
+</body>
+
+
+</html>
