@@ -146,7 +146,9 @@
 
            // console.log('x, y, adjacentPositions', x, y, adjacentPositions);
 
-           var prisonerTaken = false;
+           var prisonersTaken = false;
+
+           var prisonersList = {};
 
            for (var idx in adjacentPositions) {
                var _x = adjacentPositions[idx][0];
@@ -164,31 +166,30 @@
                    // console.error('%s,%s and all of it and its adjacent squares are DEAD!', _x, _y);
                    boardStruct[_x][_y] = null;
 
-                   if (opponentPlayer === 0) {
-                       blackPrisoners++;
-                   } else {
-                       whitePrisoners++;
-                   }
+                   prisonersList[_x + ',' + _y] = 1;
 
-                   prisonerTaken = true;
+                   prisonersTaken = true;
 
                    for (var _idx in liberties.group) {
                        var __x = liberties.group[_idx][0];
                        var __y = liberties.group[_idx][1];
                        if (boardStruct[__x][__y] === opponentPlayer) {
                            boardStruct[__x][__y] = null;
-                           if (opponentPlayer === 0) {
-                               blackPrisoners++;
-                           } else {
-                               whitePrisoners++;
-                           }
+                           prisonersList[__x + ',' + __y] = 1;
                        }
                    }
 
                }
            }
 
-           return prisonerTaken;
+
+           if (opponentPlayer === 0) {
+               blackPrisoners = parseInt(blackPrisoners) + Object.keys(prisonersList).length;
+           } else {
+               whitePrisoners = parseInt(whitePrisoners) + Object.keys(prisonersList).length;
+           }
+
+           return prisonersTaken;
 
        }
 
