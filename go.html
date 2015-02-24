@@ -6,6 +6,7 @@
     #board {
         padding:30px;
         background-color:tan;
+        float: left;
     }
     li {
         list-style: none;
@@ -94,6 +95,13 @@
 
 <body>
     <ul id="board"></ul>
+
+    <div id="details">
+        <h2 id="current_player">Black</h2>
+        <div>Captured White Pieces : <span id="captured_white_pieces">0</span></div>
+        <div>Captured Black Pieces : <span id="captured_black_pieces">0</span></div>
+        <a href="javascript:void(0);" id="pass">Pass</a>
+    </div>
 
     <script src="http://cdn.pubnub.com/pubnub-3.7.8.js" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.1/underscore.js" type="text/javascript"></script>

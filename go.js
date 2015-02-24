@@ -3,15 +3,17 @@
 
    var lastPosition = null;
 
-   var whitePrisoners = {};
+   var whitePrisoners = 0;
 
-   var blackPrisoners = {};
+   var blackPrisoners = 0;
 
    var playerState = 0;
 
    var board_size = 9;
 
    var tiles = document.getElementsByClassName('tile');
+
+   var current_player_ele document.getElementById('current_player');
 
    var findLibertyRecurseSafety = 0;
 
@@ -70,15 +72,15 @@
    };
 
    var tryToTakePrisoners = function(x, y) {
-       console.log('tryToTakePrisoners');
+       // console.log('tryToTakePrisoners');
        var adjacentPositions = adjacentPositionFinder(x, y);
-       console.log('x, y, adjacentPositions', x, y, adjacentPositions);
+       // console.log('x, y, adjacentPositions', x, y, adjacentPositions);
 
-       console.log('I am : ', playerState);
+       // console.log('I am : ', playerState);
 
        var enemyPlayer = (playerState == 0) ? 1 : 0;
 
-       console.log('Enemy is : ', enemyPlayer);
+       // console.log('Enemy is : ', enemyPlayer);
 
        adjacentPositions = _.filter(adjacentPositions, function(item) {
            var _x = item[0];
@@ -86,7 +88,7 @@
            return board_struct[_x][_y] === enemyPlayer;
        });
 
-       console.log('x, y, adjacentPositions', x, y, adjacentPositions);
+       // console.log('x, y, adjacentPositions', x, y, adjacentPositions);
 
        var prisonerTaken = false;
 
@@ -96,24 +98,38 @@
            var liberties = findLibertiesOfAPosition([
                [x, y],
                [_x, _y]
-           ], adjacentPositionFinder(_x, _y), enemyPlayer, false);
-           console.log('!!liberties!!', liberties);
+           ], adjacentPositionFinder(_x, _y), enemyPlayer);
+           // console.log('!!liberties!!', liberties);
            if (Object.keys(liberties.liberties).length === 0) {
-               console.error('%s,%s and all of it and its adjacent squares are DEAD!', _x, _y);
+               // console.error('%s,%s and all of it and its adjacent squares are DEAD!', _x, _y);
                var ele = document.querySelector('li[data-x="' + _x + '"][data-y="' + _y + '"]');
                ele.className = 'tile';
                board_struct[_x][_y] = null;
+
+               if (enemyPlayer === 0) {
+                   blackPrisoners++;
+               } else {
+                   whitePrisoners++;
+               }
+
                prisonerTaken = true;
 
                // work in progress - attempt to capture all affected pieces
                // works in some conditions... does not work in other conditions =(
-               // for (var _idx in liberties.group) {
-               //     var __x = liberties.group[_idx][0];
-               //     var __y = liberties.group[_idx][1];
-               //     var ele = document.querySelector('li[data-x="' + __x + '"][data-y="' + __y + '"]');
-               //     ele.className = 'tile';
-               //     board_struct[__x][__y] = null;
-               // }
+               for (var _idx in liberties.group) {
+                   var __x = liberties.group[_idx][0];
+                   var __y = liberties.group[_idx][1];
+                   if (board_struct[__x][__y] === enemyPlayer) {
+                       var ele = document.querySelector('li[data-x="' + __x + '"][data-y="' + __y + '"]');
+                       ele.className = 'tile';
+                       board_struct[__x][__y] = null;
+                       if (enemyPlayer === 0) {
+                           blackPrisoners++;
+                       } else {
+                           whitePrisoners++;
+                       }
+                   }
+               }
 
            }
        }
@@ -124,7 +140,7 @@
 
    var getPositionValid = function(x, y) {
 
-       console.log('determineIfPositionIsValid');
+       // console.log('determineIfPositionIsValid');
 
        if (board_struct[x][y] !== null) {
            return false;
@@ -132,7 +148,7 @@
 
        var adjacentPositions = adjacentPositionFinder(x, y);
 
-       console.log('x, y, adjacentPositions', x, y, adjacentPositions);
+       // console.log('x, y, adjacentPositions', x, y, adjacentPositions);
 
        findLibertyRecurseSafety = 0;
 
@@ -140,28 +156,31 @@
            [x, y]
        ], adjacentPositions, playerState).liberties).length;
 
-       console.log('Find liberty recursions : %s', findLibertyRecurseSafety);
+       // console.log('Find liberty recursions : %s', findLibertyRecurseSafety);
 
        board_struct[x][y] = playerState;
 
        var prisonersTaken = tryToTakePrisoners(x, y);
+
+       document.getElementById('captured_white_pieces').innerHTML = whitePrisoners;
+       document.getElementById('captured_black_pieces').innerHTML = blackPrisoners;
 
        if (liberties === 0 && prisonersTaken === false) {
            board_struct[x][y] = null;
            return false;
        }
 
-       console.log('liberties', liberties);
+       // console.log('liberties', liberties);
 
        return true;
    };
 
-   var findLibertiesOfAPosition = function(examined_positions, adjacentPositions, forPlayer, immediateReturn) {
+   var findLibertiesOfAPosition = function(examined_positions, adjacentPositions, forPlayer) {
 
        findLibertyRecurseSafety++
 
        if (findLibertyRecurseSafety > 200) {
-           console.log('Recursed too many times, bailing out.');
+           // console.log('Recursed too many times, bailing out.');
            return {};
        }
 
@@ -170,9 +189,9 @@
            'group': {}
        };
 
-       console.log('findLibertiesOfAPosition');
-       console.log('examined_positions', examined_positions);
-       console.log('adjacentPositions', adjacentPositions);
+       // console.log('findLibertiesOfAPosition');
+       // console.log('examined_positions', examined_positions);
+       // console.log('adjacentPositions', adjacentPositions);
 
        for (var idx in adjacentPositions) {
            var x = adjacentPositions[idx][0];
@@ -183,11 +202,6 @@
            if (positionOwner === null) {
                _results['liberties'][x + ',' + y] = 1;
                continue;
-           }
-
-           if (immediateReturn && Object.keys(_results['liberties']).length !== 0) {
-               console.log('invoking immediate return, found atleast 1 liberty');
-               return _results;
            }
 
            /*protection attempt for recursive loopback behavior*/
@@ -208,10 +222,10 @@
 
            /*protection attempt for recursive loopback behavior*/
 
-           console.log('adjacentPosition', x, y, getColorClass(positionOwner));
+           // console.log('adjacentPosition', x, y, getColorClass(positionOwner));
 
            if (positionOwner === forPlayer) {
-               console.log('adjacentPosition is mine');
+               // console.log('adjacentPosition is mine');
                var moreAdjacentPositions = adjacentPositionFinder(x, y);
 
                moreAdjacentPositions = _.filter(moreAdjacentPositions, function(item) {
@@ -225,7 +239,7 @@
                        var __y = examined_positions[_idx][1];
                        if (__x == _x && __y == _y) {
                            shouldReturnPosition = false;
-                           console.log('need to splice out the more adjacentPositions for _x, _y', _x, _y);
+                           // console.log('need to splice out the more adjacentPositions for _x, _y', _x, _y);
                            break;
                        }
                    }
@@ -233,11 +247,11 @@
                    return shouldReturnPosition;
                });
 
-               console.log('adjacentPositions to that are :', moreAdjacentPositions);
+               // console.log('adjacentPositions to that are :', moreAdjacentPositions);
 
                examined_positions.push([x, y]);
 
-               var found_liberties = findLibertiesOfAPosition(examined_positions, moreAdjacentPositions, forPlayer, immediateReturn);
+               var found_liberties = findLibertiesOfAPosition(examined_positions, moreAdjacentPositions, forPlayer);
 
                for (var _idx in found_liberties.liberties) {
                    _results['liberties'][_idx] = 1;
@@ -246,7 +260,7 @@
            }
        }
 
-       console.log('_liberties', _results);
+       // console.log('_liberties', _results);
 
        _results['group'] = examined_positions;
 
@@ -293,8 +307,8 @@
        var y = parseInt(ele.getAttribute('data-y'));
        var positionValid = getPositionValid(x, y);
        if (positionValid === false) {
-           console.log('invalid position');
-           console.log(' ');
+           // console.log('invalid position');
+           // console.log(' ');
            return;
        }
 
@@ -304,10 +318,10 @@
 
        lastPosition = [x, y];
 
-       playerState = (playerState == 0) ? 1 : 0;
+       pass();
 
-       console.log('%s to move', getColorClass(playerState));
-       console.log(' ');
+       // console.log('%s to move', getColorClass(playerState));
+       // console.log(' ');
    };
 
    board_struct = createEmptyBoardStruct();
@@ -321,8 +335,12 @@
    // playerState = 0;
 
    // complicated Ko position 2
-   // board_struct = JSON.parse("[[1,1,1,null,null,null,null,null,0],[null,null,null,null,null,null,null,null,null],[null,null,0,0,0,0,0,0,null],[null,null,0,1,1,1,1,0,null],[null,null,0,1,null,null,1,0,null],[null,null,0,1,1,1,1,0,null],[null,null,0,0,0,0,0,0,0],[null,null,null,null,null,null,null,0,0],[1,1,1,1,1,1,1,1,1]]");
+   // board_struct = JSON.parse("[[1,1,1,null,null,null,null,null,0],[null,null,null,null,null,null,null,null,null],[null,null,0,0,0,0,0,0,null],[null,null,0,1,1,1,1,0,null],[null,null,0,1,null,0,1,0,null],[null,null,0,1,1,1,1,0,null],[null,null,0,0,0,0,0,0,0],[null,null,null,null,null,null,null,0,0],[1,1,1,1,1,1,1,1,1]]");
    // playerState = 1;
+
+   // complicated Ko position 3
+   // board_struct = JSON.parse("[[1,1,1,null,null,null,null,null,0],[null,null,null,null,null,null,null,null,null],[null,null,0,0,0,0,0,0,null],[null,null,0,1,1,1,1,0,null],[null,null,0,1,1,null,1,0,null],[null,null,0,1,1,1,1,0,null],[null,null,0,0,0,0,0,0,0],[null,null,null,null,null,null,null,0,0],[1,1,1,1,1,1,1,1,1]]");
+   // playerState = 0;
 
    // some straight lines
    // board_struct = JSON.parse("[[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,0,0,0,1,1,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null]]");
@@ -340,6 +358,14 @@
    // board_struct = JSON.parse("[[0,0,0,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,0,1,0,null,0,0],[null,null,0,0,0,1,1,1,1],[null,null,null,null,0,1,1,1,1],[null,null,null,null,null,0,0,0,1],[null,null,null,null,null,null,null,null,0],[1,1,1,0,0,null,1,1,null]]");
    // playerState = 0;
 
+   // turning point :(
+   // board_struct = JSON.parse("[[null,null,null,null,null,0,1,0,null],[null,null,null,null,null,0,1,0,null],[null,null,0,1,1,0,1,0,1],[null,null,0,1,0,0,1,0,1],[null,null,0,1,1,0,1,1,null],[null,null,null,null,0,1,1,null,1],[null,null,0,null,null,0,0,1,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null]])
+
+
+   // turning point =)
+   // board_struct = JSON.parse("[[null,null,null,null,null,0,1,0,null],[null,null,null,null,null,0,1,0,null],[null,null,0,1,1,0,1,0,1],[null,null,0,1,0,0,1,0,1],[null,null,0,1,1,0,1,1,null],[null,null,null,null,0,1,1,0,null],[null,null,0,null,null,0,0,1,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null]]")
+   // playerState = 1;
+
    drawBoardFromStruct(board_struct);
 
    PUBNUB.each(tiles, function(ele) {
@@ -348,5 +374,12 @@
        });
    });
 
-   console.log('%s to move', getColorClass(playerState));
-   console.log(' ');
+   var pass = function() {
+       playerState = (playerState == 0) ? 1 : 0;
+       current_player_ele.innerHTML = playerState == 1 ? 'White' : 'Black';
+   };
+
+   PUBNUB.bind('click', document.getElementById('pass'), pass);
+
+   // console.log('%s to move', getColorClass(playerState));
+   // console.log(' ');
