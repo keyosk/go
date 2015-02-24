@@ -25,9 +25,11 @@ h2{
     font-family: 'Megrim', cursive;
 }
 
+
 #nav #logo{
     font-family: 'Megrim', cursive;
     float: left;
+    padding-right: 20px;
 }
 
 #nav #lastPositionHolder {
@@ -36,6 +38,7 @@ h2{
 
 #nav #lobby{
     float:right;
+    padding-top: 10px;
 }
 
 #nav .container{
