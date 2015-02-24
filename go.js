@@ -75,8 +75,6 @@
                        var _li = document.createElement('li');
                        var tile = boardStruct[x][y];
                        _li.className = 'tile ' + getColorClass(tile);
-                       _li.setAttribute('data-x', x);
-                       _li.setAttribute('data-y', y);
                        _li.innerHTML = '<div><span>' + x + ',' + y + '</span></div>';
                        ul.appendChild(_li);
                        elementsCache[x][y] = _li;
