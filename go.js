@@ -114,8 +114,6 @@
 
                prisonerTaken = true;
 
-               // work in progress - attempt to capture all affected pieces
-               // works in some conditions... does not work in other conditions =(
                for (var _idx in liberties.group) {
                    var __x = liberties.group[_idx][0];
                    var __y = liberties.group[_idx][1];
