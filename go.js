@@ -13,7 +13,7 @@
 
    var tiles = document.getElementsByClassName('tile');
 
-   var current_player_ele document.getElementById('current_player');
+   var current_player_ele = document.getElementById('current_player');
 
    var findLibertyRecurseSafety = 0;
 
