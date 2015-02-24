@@ -4,8 +4,8 @@
     <title>Go</title>
     <style type="text/css">
     #board {
-        padding:30px;
-        background-color:tan;
+        padding: 30px;
+        background-color: tan;
         float: left;
     }
     li {
@@ -29,6 +29,7 @@
     }
     ul > li > ul > li.tile:first-child {
         /* entire left column */
+        
         border-left: 4px solid brown;
     }
     ul > li > ul > li.tile:nth-last-child(2) {
@@ -36,6 +37,7 @@
     }
     ul > li > ul > li.tile:nth-last-child(1) {
         /* entire right column */
+        
         background: transparent;
         border: 0;
     }
@@ -46,9 +48,8 @@
         background-color: white !important;
     }
     li.tile.white div span {
-      color: black;
+        color: black;
     }
-
     li.tile div {
         width: 50px;
         height: 50px;
@@ -60,7 +61,7 @@
         text-align: center;
     }
     li.tile div:hover {
-        background-color: rgba(255,255,255, .4);
+        background-color: rgba(255, 255, 255, .4);
         cursor: pointer;
     }
     li.tile div span {
@@ -68,28 +69,24 @@
         top: 16px;
         position: relative;
     }
-        
     ul > li:last-child ul li.tile {
         /* Final row, add some fake spacing with border */
-        border-left:2px solid tan;
+        
+        border-left: 2px solid tan;
         border-top: 0;
     }
-
     ul > li:nth-last-child(2) ul li.tile {
         border-bottom: 4px solid brown;
     }
-
-
     ul > li:nth-last-child(2) ul li.tile:last-child {
         border-bottom: none;
     }
-
     ul > li:last-child ul li.tile:nth-last-child(2) {
         /* Final row, add some fake spacing with border */
-        border-left:2px solid tan;
+        
+        border-left: 2px solid tan;
         border-right: 0;
     }
-
     </style>
 </head>
 
@@ -100,13 +97,13 @@
         <h2 id="current_player">Black</h2>
         <div>Captured White Pieces : <span id="captured_white_pieces">0</span></div>
         <div>Captured Black Pieces : <span id="captured_black_pieces">0</span></div>
-        <a href="javascript:void(0);" id="pass">Pass</a>
-    </div>
+        <div><a href="javascript:void(0);" id="pass">Pass</a></div>
+        <div>Lobby Name : <a id="lobby_name_link" href="" target="_blank">x</a></div>
 
-    <script src="http://cdn.pubnub.com/pubnub-3.7.8.js" type="text/javascript"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.1/underscore.js" type="text/javascript"></script>
+        <script src="http://cdn.pubnub.com/pubnub-3.7.8.js" type="text/javascript"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.1/underscore.js" type="text/javascript"></script>
 
-    <script src="go.js" type="text/javascript"></script>
+        <script src="go.js" type="text/javascript"></script>
 </body>
 
 

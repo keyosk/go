@@ -19,6 +19,19 @@
 
        var findLibertyRecurseSafety = 0;
 
+       var lobbyName = (location.href.match(/room=([^&]+)/) || ['']).slice(-1)[0] || PUBNUB.uuid();
+
+       var VERSION = '0.0.1';
+
+       var pubnubDataChannel = 'go-game-' + VERSION + '-' + lobbyName;
+
+       var pubnubInstance = PUBNUB.init({
+           'subscribe_key': 'demo',
+           'publish_key': 'demo'
+       });
+
+       var pubnubUUID = PUBNUB.uuid();
+
        var getColorClass = function(colorState) {
            var color = '';
            if (colorState === 0) {
@@ -76,6 +89,19 @@
                        var x = parseInt(ele.getAttribute('data-x'));
                        var y = parseInt(ele.getAttribute('data-y'));
                        var result = moveStoneToXY(currentPlayer, x, y);
+                       if (result) {
+                           pubnubInstance.publish({
+                               'channel': pubnubDataChannel,
+                               'message': {
+                                   'type': 'move',
+                                   'forPlayer': (currentPlayer == 0) ? 1 : 0,
+                                   'x': x,
+                                   'y': y,
+                                   'pubnubUUID': pubnubUUID,
+                                   'time': (new Date().getTime())
+                               }
+                           });
+                       }
                    });
                });
 
@@ -328,7 +354,7 @@
        var moveStoneToXY = function(forPlayer, x, y) {
 
            if (forPlayer !== currentPlayer) {
-            // don't allow a click out of turn
+               // don't allow a click out of turn
                return false;
            }
 
@@ -352,16 +378,76 @@
            // console.log(' ');
        };
 
-       boardStruct = createEmptyBoardStruct();
-
-       drawBoardFromStruct();
-
        var pass = function() {
            currentPlayer = (currentPlayer == 0) ? 1 : 0;
            currentPlayerEle.innerHTML = currentPlayer == 1 ? 'White' : 'Black';
-       }
+       };
 
-       PUBNUB.bind('click', document.getElementById('pass'), pass);
+       (function init() {
+
+           if ((location.href.match(/room=([^&]+)/) || ['']).slice(-1)[0] !== lobbyName) {
+               document.location.search = '?room=' + lobbyName;
+           }
+
+           boardStruct = createEmptyBoardStruct();
+
+           drawBoardFromStruct();
+
+           PUBNUB.bind('click', document.getElementById('pass'), function() {
+               if (confirm('Are you sure you want to Pass?')) {
+                   pubnubInstance.publish({
+                       'channel': pubnubDataChannel,
+                       'message': {
+                           'type': 'pass',
+                           'forPlayer': currentPlayer,
+                           'pubnubUUID': pubnubUUID,
+                           'time': (new Date().getTime())
+                       }
+                   });
+                   pass();
+               }
+           });
+
+           document.getElementById('lobby_name_link').innerHTML = lobbyName;
+           document.getElementById('lobby_name_link').href = '?room=' + lobbyName;
+
+           pubnubInstance.subscribe({
+               'channel': pubnubDataChannel,
+               'callback': function(m) {
+                   if ('type' in m) {
+                       if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
+                           moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
+                       } else if (m.type === 'pass' && 'forPlayer' in m) {
+                           if (parseInt(currentPlayer) === parseInt(m.forPlayer)) {
+                               pass();
+                           }
+                       }
+                   }
+               }
+           });
+
+           pubnubInstance.history({
+               'channel': pubnubDataChannel,
+               'callback': function(messages) {
+                   if (messages[0].length) {
+                       for (var idx in messages[0]) {
+                           var m = messages[0][idx];
+                           if ('type' in m) {
+                               if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
+                                   moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
+                               } else if (m.type === 'pass' && 'forPlayer' in m) {
+                                   if (parseInt(currentPlayer) === parseInt(m.forPlayer)) {
+                                       pass();
+                                   }
+                               }
+                           }
+                       }
+                   }
+               },
+               'error': function() {}
+           });
+
+       }());
 
        // console.log('%s to move', getColorClass(currentPlayer));
        // console.log(' ');
