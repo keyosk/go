@@ -10,7 +10,14 @@
     <div id="nav">
         <div class="container">
             <div id="logo"><h1>go</h1></div>
-            turn: <span id="current_player">Black</span>
+            <div id="lastPositionHolder">
+                <div>
+                turn: <span id="current_player">Black</span>
+            </div>
+                <div>
+                Last Position : <span id="last_position"></span>
+            </div>
+            </div>
             <div id="lobby">Lobby : <a id="lobby_name_link" href="javascript:void(0)" target="_blank"></a></div>
         </div>
     </div>
@@ -25,9 +32,7 @@
 
             <a href="javascript:void(0);" id="pass"><div class="pass">PASS</div></a>
 
-            <div><a href="javascript:void(0);" id="undo">Undo</a></div>
-
-            <div>Last Position : <span id="last_position"></span></div>
+            <a href="javascript:void(0);" id="undo"><div class="undo">UNDO</div></a>
 
             <div class="score black" id="black_score">
                 <div class="piece"></div>

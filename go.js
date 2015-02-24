@@ -14,7 +14,7 @@
 
        var currentPlayer = 0;
 
-       var boardSize = 9;
+       var boardSize = (location.href.match(/boardSize=([^&]+)/) || ['']).slice(-1)[0] || 9;
 
        var currentPlayerEle = document.getElementById('current_player');
 
@@ -468,6 +468,10 @@
                document.location.search = '?room=' + lobbyName;
            }
 
+           if ((location.href.match(/boardSize=([^&]+)/) || ['']).slice(-1)[0] != boardSize) {
+               document.location.search = document.location.search + '&boardSize=' + boardSize;
+           }
+
            boardStruct = createEmptyBoardStruct();
 
            elementsCache = createEmptyBoardStruct();
@@ -504,7 +508,7 @@
            });
 
            lobbyNameLink.innerHTML = lobbyName;
-           lobbyNameLink.href = '?room=' + lobbyName;
+           lobbyNameLink.href = '?room=' + lobbyName + '&boardSize=' + boardSize;
 
            pubnubInstance.subscribe({
                'channel': pubnubDataChannel,

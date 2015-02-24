@@ -30,6 +30,10 @@ h2{
     float: left;
 }
 
+#nav #lastPositionHolder {
+    float:left;
+}
+
 #nav #lobby{
     float:right;
 }
@@ -74,11 +78,13 @@ h2{
     box-shadow: 0 0 4px 0 #3B3DFF;
 }
 
-#pass{
+#pass,
+#undo{
     text-decoration: none;
 }
 
-.pass{
+.pass,
+.undo{
     padding: 10px 10px;
     background: #7B7B7B;
     margin: 25px 0px;
