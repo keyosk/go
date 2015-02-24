@@ -1,9 +1,10 @@
    (function() {
 
        var boardEle = document.getElementById('board');
-       var boardStruct;
 
-       var lastPosition = null;
+       var elementsCache;
+
+       var boardStruct;
 
        var whitePrisoners = 0;
 
@@ -13,9 +14,12 @@
 
        var boardSize = 9;
 
-       var tiles = document.getElementsByClassName('tile');
-
        var currentPlayerEle = document.getElementById('current_player');
+
+       var lobbyNameLink = document.getElementById('lobby_name_link');
+
+       var capturedWhitePiecesEle = document.getElementById('captured_white_pieces');
+       var capturedBlackPiecesEle = document.getElementById('captured_black_pieces');
 
        var findLibertyRecurseSafety = 0;
 
@@ -75,6 +79,7 @@
                        _li.setAttribute('data-y', y);
                        _li.innerHTML = '<div><span>' + x + ',' + y + '</span></div>';
                        ul.appendChild(_li);
+                       elementsCache[x][y] = _li;
                    }
 
                    li.appendChild(ul);
@@ -84,24 +89,26 @@
                li.appendChild(ul);
                boardEle.appendChild(li);
 
-               PUBNUB.each(tiles, function(ele) {
-                   PUBNUB.bind('click', ele, function() {
-                       var x = parseInt(ele.getAttribute('data-x'));
-                       var y = parseInt(ele.getAttribute('data-y'));
-                       var result = moveStoneToXY(currentPlayer, x, y);
-                       if (result) {
-                           pubnubInstance.publish({
-                               'channel': pubnubDataChannel,
-                               'message': {
-                                   'type': 'move',
-                                   'forPlayer': (currentPlayer == 0) ? 1 : 0,
-                                   'x': x,
-                                   'y': y,
-                                   'pubnubUUID': pubnubUUID,
-                                   'time': (new Date().getTime())
-                               }
-                           });
-                       }
+               PUBNUB.each(elementsCache, function(row, x) {
+                   PUBNUB.each(row, function(ele, y) {
+                       PUBNUB.bind('click', ele, function() {
+                           x = parseInt(x);
+                           y = parseInt(y);
+                           var result = moveStoneToXY(currentPlayer, x, y);
+                           if (result) {
+                               pubnubInstance.publish({
+                                   'channel': pubnubDataChannel,
+                                   'message': {
+                                       'type': 'move',
+                                       'forPlayer': (currentPlayer == 0) ? 1 : 0,
+                                       'x': x,
+                                       'y': y,
+                                       'pubnubUUID': pubnubUUID,
+                                       'time': (new Date().getTime())
+                                   }
+                               });
+                           }
+                       });
                    });
                });
 
@@ -111,7 +118,10 @@
 
                    for (var y in boardStruct[x]) {
 
-                       document.querySelector('li[data-x="' + x + '"][data-y="' + y + '"]').className = 'tile ' + getColorClass(boardStruct[x][y]);
+                       elementsCache[x][y].className = 'tile ' + getColorClass(boardStruct[x][y]);
+
+                       capturedWhitePiecesEle.innerHTML = whitePrisoners;
+                       capturedBlackPiecesEle.innerHTML = blackPrisoners;
                    }
                }
 
@@ -210,9 +220,6 @@
            boardStruct[x][y] = forPlayer;
 
            var prisonersTaken = tryToTakePrisoners(forPlayer, x, y);
-
-           document.getElementById('captured_white_pieces').innerHTML = whitePrisoners;
-           document.getElementById('captured_black_pieces').innerHTML = blackPrisoners;
 
            if (liberties === 0 && prisonersTaken === false) {
                boardStruct[x][y] = null;
@@ -366,8 +373,6 @@
                return false;
            }
 
-           lastPosition = [x, y];
-
            pass();
 
            drawBoardFromStruct();
@@ -383,6 +388,18 @@
            currentPlayerEle.innerHTML = currentPlayer == 1 ? 'White' : 'Black';
        };
 
+       var processPubNubPayload = function(m) {
+           if ('type' in m) {
+               if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
+                   moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
+               } else if (m.type === 'pass' && 'forPlayer' in m) {
+                   if (parseInt(currentPlayer) === parseInt(m.forPlayer)) {
+                       pass();
+                   }
+               }
+           }
+       };
+
        (function init() {
 
            if ((location.href.match(/room=([^&]+)/) || ['']).slice(-1)[0] !== lobbyName) {
@@ -390,6 +407,8 @@
            }
 
            boardStruct = createEmptyBoardStruct();
+
+           elementsCache = createEmptyBoardStruct();
 
            drawBoardFromStruct();
 
@@ -408,22 +427,12 @@
                }
            });
 
-           document.getElementById('lobby_name_link').innerHTML = lobbyName;
-           document.getElementById('lobby_name_link').href = '?room=' + lobbyName;
+           lobbyNameLink.innerHTML = lobbyName;
+           lobbyNameLink.href = '?room=' + lobbyName;
 
            pubnubInstance.subscribe({
                'channel': pubnubDataChannel,
-               'callback': function(m) {
-                   if ('type' in m) {
-                       if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
-                           moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
-                       } else if (m.type === 'pass' && 'forPlayer' in m) {
-                           if (parseInt(currentPlayer) === parseInt(m.forPlayer)) {
-                               pass();
-                           }
-                       }
-                   }
-               }
+               'callback': processPubNubPayload
            });
 
            pubnubInstance.history({
@@ -431,16 +440,7 @@
                'callback': function(messages) {
                    if (messages[0].length) {
                        for (var idx in messages[0]) {
-                           var m = messages[0][idx];
-                           if ('type' in m) {
-                               if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
-                                   moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
-                               } else if (m.type === 'pass' && 'forPlayer' in m) {
-                                   if (parseInt(currentPlayer) === parseInt(m.forPlayer)) {
-                                       pass();
-                                   }
-                               }
-                           }
+                           processPubNubPayload(messages[0][idx]);
                        }
                    }
                },
