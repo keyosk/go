@@ -1,5 +1,14 @@
    (function() {
 
+       var rand = function(len) {
+           var text = '';
+           var charset = 'abcdefghijklmnopqrstuvwxyz0123456789';
+           for (var i = 0; i < len; i++) {
+               text += charset.charAt(Math.floor(Math.random() * charset.length));
+           }
+           return text;
+       };
+
        var containerEle = document.getElementById('game');
 
        var lastPositionEle = document.getElementById('last_position');
@@ -25,7 +34,7 @@
 
        var findLibertyRecurseSafety = 0;
 
-       var lobbyName = (location.href.match(/room=([^&]+)/) || ['']).slice(-1)[0] || PUBNUB.uuid();
+       var lobbyName = (location.href.match(/room=([^&]+)/) || ['']).slice(-1)[0] || rand(5);
 
        var VERSION = '0.0.2';
 
@@ -37,6 +46,7 @@
            'subscribe_key': 'demo',
            'publish_key': 'demo'
        });
+
 
        var pubnubUUID = PUBNUB.uuid();
 
@@ -464,12 +474,18 @@
 
        (function init() {
 
+           var searchString = '';
+
            if ((location.href.match(/room=([^&]+)/) || ['']).slice(-1)[0] !== lobbyName) {
-               document.location.search = '?room=' + lobbyName;
+               searchString = '?room=' + lobbyName;
            }
 
            if ((location.href.match(/boardSize=([^&]+)/) || ['']).slice(-1)[0] != boardSize) {
-               document.location.search = document.location.search + '&boardSize=' + boardSize;
+               searchString = searchString + '&boardSize=' + boardSize;
+           }
+
+           if (searchString !== '') {
+               document.location.search = searchString;
            }
 
            boardStruct = createEmptyBoardStruct();
