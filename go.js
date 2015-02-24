@@ -78,7 +78,7 @@
                        var tableCell = document.createElement('td');
                        var tile = boardStruct[x][y];
                        tableCell.className = getColorClass(tile);
-                       tableCell.innerHTML = '<div><span>' + (parseInt(x)+1) + ',' + (parseInt(y)+1) + '</span></div>';
+                       tableCell.innerHTML = '<div><span>' + (parseInt(x) + 1) + ',' + (parseInt(y) + 1) + '</span></div>';
                        tableRow.appendChild(tableCell);
                        elementsCache[x][y] = tableCell;
                    }
@@ -123,7 +123,7 @@
                        capturedWhitePiecesEle.innerHTML = whitePrisoners;
                        capturedBlackPiecesEle.innerHTML = blackPrisoners;
 
-                       lastPositionEle.innerHTML = lastPosition; 
+                       lastPositionEle.innerHTML = lastPosition;
                    }
                }
 
@@ -376,7 +376,7 @@
                return false;
            }
 
-           lastPosition = (forPlayer == 1 ? 'White' : 'Black') + ' @ ' +(parseInt(x) + 1) + ',' + (parseInt(y) + 1);
+           lastPosition = (forPlayer == 1 ? 'White' : 'Black') + ' @ ' + (parseInt(x) + 1) + ',' + (parseInt(y) + 1);
 
            pass();
 
@@ -394,7 +394,6 @@
        };
 
        var processPubNubPayload = function(m) {
-           console.log(m);
            if ('type' in m) {
                if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
                    moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
@@ -402,8 +401,64 @@
                    if (parseInt(currentPlayer) === parseInt(m.forPlayer)) {
                        pass();
                    }
+               } else if (m.type === 'undo') {
+                   setTimeout(function() {
+                       boardStruct = createEmptyBoardStruct();
+                       blackPrisoners = 0;
+                       whitePrisoners = 0;
+                       currentPlayer = 0;
+                       lastPosition = '';
+                       drawBoardFromStruct();
+                       currentPlayerEle.innerHTML = currentPlayer == 1 ? 'White' : 'Black';
+                       requestPubNubHistory();
+                   }, 500);
                }
            }
+       };
+
+       var requestPubNubHistory = function() {
+
+           pubnubInstance.history({
+               'channel': pubnubDataChannel,
+               'callback': function(messages) {
+                   if (messages[0].length) {
+
+                       for (var idx in messages[0]) {
+                           var m = messages[0][idx]
+                           if ('type' in m && m.type === 'undo') {
+                               var undoIndex = idx;
+                               while (undoIndex - 1 >= 0) {
+                                   undoIndex = undoIndex - 1;
+                                   if (undoIndex >= 0) {
+                                       var _m = messages[0][undoIndex];
+                                       if ('type' in _m && _m.type !== 'undo') {
+                                           messages[0][undoIndex] = {};
+                                           break;
+                                       }
+                                   } else {
+                                       break;
+                                   }
+                               }
+                           }
+                       }
+
+                       for (var idx in messages[0]) {
+                           var m = messages[0][idx]
+                           if ('type' in m) {
+                               if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
+                                   moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
+                               } else if (m.type === 'pass' && 'forPlayer' in m) {
+                                   if (parseInt(currentPlayer) === parseInt(m.forPlayer)) {
+                                       pass();
+                                   }
+                               }
+                           }
+                       }
+                   }
+               },
+               'error': function() {}
+           });
+
        };
 
        (function init() {
@@ -433,6 +488,20 @@
                }
            });
 
+           PUBNUB.bind('click', document.getElementById('undo'), function() {
+               if (confirm('Are you sure you want to Undo?')) {
+                   pubnubInstance.publish({
+                       'channel': pubnubDataChannel,
+                       'message': {
+                           'type': 'undo',
+                           'forPlayer': currentPlayer,
+                           'pubnubUUID': pubnubUUID,
+                           'time': (new Date().getTime())
+                       }
+                   });
+               }
+           });
+
            lobbyNameLink.innerHTML = lobbyName;
            lobbyNameLink.href = '?room=' + lobbyName;
 
@@ -441,17 +510,7 @@
                'callback': processPubNubPayload
            });
 
-           pubnubInstance.history({
-               'channel': pubnubDataChannel,
-               'callback': function(messages) {
-                   if (messages[0].length) {
-                       for (var idx in messages[0]) {
-                           processPubNubPayload(messages[0][idx]);
-                       }
-                   }
-               },
-               'error': function() {}
-           });
+           requestPubNubHistory();
 
        }());
 
