@@ -74,7 +74,7 @@
                        var tableCell = document.createElement('td');
                        var tile = boardStruct[x][y];
                        tableCell.className = getColorClass(tile);
-                       tableCell.innerHTML = '<div><span>' + x + ',' + y + '</span></div>';
+                       tableCell.innerHTML = '<div><span>' + (parseInt(x)+1) + ',' + (parseInt(y)+1) + '</span></div>';
                        tableRow.appendChild(tableCell);
                        elementsCache[x][y] = tableCell;
                    }
