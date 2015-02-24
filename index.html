@@ -3,102 +3,79 @@
 <head>
     <title>Go</title>
     <style type="text/css">
-    #board {
-        padding: 30px;
+    body,
+    html {
+        margin: 0px;
+        padding: 0px;
         background-color: tan;
+    }
+    #details {
+        float: left;
+        margin-left: 50px;
+    }
+    #container {
+        padding-left: 100px;
+        padding-top: 50px;
+        padding-bottom: 25px;
+        min-width:500px;
         float: left;
     }
-    li {
-        list-style: none;
+    #container table {
+        background-color: tan;
+        border-collapse: collapse;
     }
-    li.tile {
+    #container table tr td {
+        border: 4px solid brown;
+        padding: 0px;
+        margin: 0px;
         width: 50px;
         height: 50px;
-        background-color: tan;
-        display: inline-block;
-        border: 2px solid brown;
-        position: relative;
     }
-    ul > li:first-child > ul > li.tile {
-        border-top: 4px solid brown;
+    #container table tr td:nth-last-child(1) {
+        border: 0px;
     }
-    ul > li:last-child > ul > li.tile {
-        background: transparent;
-        border: 2px solid tan;
-        border-top: 2px solid brown;
+    #container table tr:nth-last-child(1) td {
+        border: 0px;
     }
-    ul > li > ul > li.tile:first-child {
-        /* entire left column */
-        
-        border-left: 4px solid brown;
-    }
-    ul > li > ul > li.tile:nth-last-child(2) {
-        border-right: 4px solid brown;
-    }
-    ul > li > ul > li.tile:nth-last-child(1) {
-        /* entire right column */
-        
-        background: transparent;
-        border: 0;
-    }
-    li.tile.black div {
-        background-color: black !important;
-    }
-    li.tile.white div {
-        background-color: white !important;
-    }
-    li.tile.white div span {
-        color: black;
-    }
-    li.tile div {
+    #container table tr td div {
         width: 50px;
         height: 50px;
         border-radius: 30px;
         position: relative;
         top: -25px;
-        z-index: 10;
         left: -25px;
         text-align: center;
     }
-    li.tile div:hover {
+    #container table tr td div:hover {
         background-color: rgba(255, 255, 255, .4);
         cursor: pointer;
     }
-    li.tile div span {
+    #container table tr td.black div {
+        background-color: black !important;
+    }
+    #container table tr td.white div {
+        background-color: white !important;
+    }
+    #container table tr td div span {
         color: white;
         top: 16px;
         position: relative;
     }
-    ul > li:last-child ul li.tile {
-        /* Final row, add some fake spacing with border */
-        
-        border-left: 2px solid tan;
-        border-top: 0;
-    }
-    ul > li:nth-last-child(2) ul li.tile {
-        border-bottom: 4px solid brown;
-    }
-    ul > li:nth-last-child(2) ul li.tile:last-child {
-        border-bottom: none;
-    }
-    ul > li:last-child ul li.tile:nth-last-child(2) {
-        /* Final row, add some fake spacing with border */
-        
-        border-left: 2px solid tan;
-        border-right: 0;
+    #container table tr td.white div span {
+        color: black;
     }
     </style>
 </head>
 
 <body>
-    <ul id="board"></ul>
+    <div id="container"></div>
 
     <div id="details">
         <h2 id="current_player">Black</h2>
         <div>Captured White Pieces : <span id="captured_white_pieces">0</span></div>
         <div>Captured Black Pieces : <span id="captured_black_pieces">0</span></div>
         <div><a href="javascript:void(0);" id="pass">Pass</a></div>
-        <div>Lobby Name : <a id="lobby_name_link" href="" target="_blank">x</a></div>
+        <div>Lobby Name : <a id="lobby_name_link" href="javascript:void(0)" target="_blank"></a></div>
 
         <script src="http://cdn.pubnub.com/pubnub-3.7.8.js" type="text/javascript"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.1/underscore.js" type="text/javascript"></script>

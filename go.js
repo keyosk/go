@@ -1,6 +1,6 @@
    (function() {
 
-       var boardEle = document.getElementById('board');
+       var containerEle = document.getElementById('container');
 
        var elementsCache;
 
@@ -63,29 +63,27 @@
 
        var drawBoardFromStruct = function() {
 
-           if (boardEle.children.length === 0) {
+           if (containerEle.children.length === 0) {
+
+               var tableEle = document.createElement('table');
 
                for (var x in boardStruct) {
 
-                   var li = document.createElement('li');
-
-                   var ul = document.createElement('ul');
-
+                   var tableRow = document.createElement('tr');
                    for (var y in boardStruct[x]) {
-                       var _li = document.createElement('li');
+                       var tableCell = document.createElement('td');
                        var tile = boardStruct[x][y];
-                       _li.className = 'tile ' + getColorClass(tile);
-                       _li.innerHTML = '<div><span>' + x + ',' + y + '</span></div>';
-                       ul.appendChild(_li);
-                       elementsCache[x][y] = _li;
+                       tableCell.className = getColorClass(tile);
+                       tableCell.innerHTML = '<div><span>' + x + ',' + y + '</span></div>';
+                       tableRow.appendChild(tableCell);
+                       elementsCache[x][y] = tableCell;
                    }
 
-                   li.appendChild(ul);
-                   boardEle.appendChild(li);
+                   tableEle.appendChild(tableRow);
+
                }
 
-               li.appendChild(ul);
-               boardEle.appendChild(li);
+               containerEle.appendChild(tableEle);
 
                PUBNUB.each(elementsCache, function(row, x) {
                    PUBNUB.each(row, function(ele, y) {
@@ -116,7 +114,7 @@
 
                    for (var y in boardStruct[x]) {
 
-                       elementsCache[x][y].className = 'tile ' + getColorClass(boardStruct[x][y]);
+                       elementsCache[x][y].className = getColorClass(boardStruct[x][y]);
 
                        capturedWhitePiecesEle.innerHTML = whitePrisoners;
                        capturedBlackPiecesEle.innerHTML = blackPrisoners;
@@ -388,6 +386,7 @@
        };
 
        var processPubNubPayload = function(m) {
+           console.log(m);
            if ('type' in m) {
                if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
                    moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
