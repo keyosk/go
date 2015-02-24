@@ -31,10 +31,10 @@
 
        var emptyBoard = [];
 
-       for (var i = 0; i < board_size; i++) {
+       for (var x = 0; x < board_size; x++) {
            emptyBoard.push([]);
-           for (var j = 0; j < board_size; j++) {
-               emptyBoard[i].push(null);
+           for (var y = 0; y < board_size; y++) {
+               emptyBoard[x].push(null);
            }
        }
 
@@ -42,32 +42,53 @@
 
    };
 
-   var drawBoardFromStruct = function(struct) {
+   var drawBoardFromStruct = function() {
 
+       if (board_ele.children.length === 0) {
 
-       for (var i in struct) {
+           for (var x in board_struct) {
 
-           var li = document.createElement('li');
+               var li = document.createElement('li');
 
-           var ul = document.createElement('ul');
+               var ul = document.createElement('ul');
 
-           for (var j in struct[i]) {
-               var _li = document.createElement('li');
-               var tile = struct[i][j];
-               var tile_class = 'tile ' + getColorClass(tile);
-               _li.className = tile_class;
-               _li.setAttribute('data-x', i);
-               _li.setAttribute('data-y', j);
-               _li.innerHTML = '<div><span>' + i + ',' + j + '</span></div>';
-               ul.appendChild(_li);
+               for (var y in board_struct[x]) {
+                   var _li = document.createElement('li');
+                   var tile = board_struct[x][y];
+                   var tile_class = 'tile ' + getColorClass(tile);
+                   _li.className = tile_class;
+                   _li.setAttribute('data-x', x);
+                   _li.setAttribute('data-y', y);
+                   _li.innerHTML = '<div><span>' + x + ',' + y + '</span></div>';
+                   ul.appendChild(_li);
+               }
+
+               li.appendChild(ul);
+               board_ele.appendChild(li);
            }
 
            li.appendChild(ul);
            board_ele.appendChild(li);
-       }
 
-       li.appendChild(ul);
-       board_ele.appendChild(li);
+           PUBNUB.each(tiles, function(ele) {
+               PUBNUB.bind('click', ele, function(click_event) {
+                   var x = parseInt(ele.getAttribute('data-x'));
+                   var y = parseInt(ele.getAttribute('data-y'));
+                   var result = processClick(playerState, x, y);
+               });
+           });
+
+       } else {
+
+           for (var x in board_struct) {
+
+               for (var y in board_struct[x]) {
+
+                   document.querySelector('li[data-x="' + x + '"][data-y="' + y + '"]').className = 'tile ' + getColorClass(board_struct[x][y]);
+               }
+           }
+
+       }
 
    };
 
@@ -95,15 +116,18 @@
        for (var idx in adjacentPositions) {
            var _x = adjacentPositions[idx][0];
            var _y = adjacentPositions[idx][1];
-           var liberties = findLibertiesOfAPosition([
-               [x, y],
-               [_x, _y]
-           ], adjacentPositionFinder(_x, _y), enemyPlayer);
+           findLibertyRecurseSafety = 0;
+           var liberties = findLibertiesOfAPosition(
+               [
+                   [x, y],
+                   [_x, _y]
+               ],
+               adjacentPositionFinder(_x, _y),
+               enemyPlayer
+           );
            // console.log('!!liberties!!', liberties);
            if (Object.keys(liberties.liberties).length === 0) {
                // console.error('%s,%s and all of it and its adjacent squares are DEAD!', _x, _y);
-               var ele = document.querySelector('li[data-x="' + _x + '"][data-y="' + _y + '"]');
-               ele.className = 'tile';
                board_struct[_x][_y] = null;
 
                if (enemyPlayer === 0) {
@@ -118,8 +142,6 @@
                    var __x = liberties.group[_idx][0];
                    var __y = liberties.group[_idx][1];
                    if (board_struct[__x][__y] === enemyPlayer) {
-                       var ele = document.querySelector('li[data-x="' + __x + '"][data-y="' + __y + '"]');
-                       ele.className = 'tile';
                        board_struct[__x][__y] = null;
                        if (enemyPlayer === 0) {
                            blackPrisoners++;
@@ -136,7 +158,7 @@
 
    }
 
-   var getPositionValid = function(x, y) {
+   var getPositionValid = function(forPlayer, x, y) {
 
        // console.log('determineIfPositionIsValid');
 
@@ -150,9 +172,13 @@
 
        findLibertyRecurseSafety = 0;
 
-       var liberties = Object.keys(findLibertiesOfAPosition([
-           [x, y]
-       ], adjacentPositions, playerState).liberties).length;
+       var liberties = Object.keys(findLibertiesOfAPosition(
+           [
+               [x, y]
+           ],
+           adjacentPositions,
+           forPlayer
+       ).liberties).length;
 
        // console.log('Find liberty recursions : %s', findLibertyRecurseSafety);
 
@@ -300,23 +326,22 @@
 
    };
 
-   var processClick = function(ele) {
-       var x = parseInt(ele.getAttribute('data-x'));
-       var y = parseInt(ele.getAttribute('data-y'));
-       var positionValid = getPositionValid(x, y);
+   var processClick = function(forPlayer, x, y) {
+
+       var positionValid = getPositionValid(forPlayer, x, y);
        if (positionValid === false) {
            // console.log('invalid position');
            // console.log(' ');
-           return;
+           return false;
        }
-
-       var className = 'tile ' + getColorClass(playerState);
-
-       ele.className = className;
 
        lastPosition = [x, y];
 
        pass();
+
+       drawBoardFromStruct();
+
+       return true;
 
        // console.log('%s to move', getColorClass(playerState));
        // console.log(' ');
@@ -324,58 +349,12 @@
 
    board_struct = createEmptyBoardStruct();
 
-   // potential Ko position
-   // board_struct = JSON.parse("[[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,1,1,null,null,null],[null,null,null,1,0,null,1,null,null],[null,null,null,null,1,1,null,null,null],[null,null,null,null,null,null,0,0,0],[null,null,null,null,null,null,null,0,0],[null,null,null,null,null,null,null,null,null]]");
-   // playerState = 1;
-
-   // complicated Ko position
-   // board_struct = JSON.parse("[[1,1,1,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,0,0,0,0,0,0,null],[null,null,0,1,1,1,1,0,null],[null,null,0,1,0,null,1,0,null],[null,null,0,1,1,1,1,0,null],[null,null,0,0,0,0,0,0,0],[null,null,null,null,null,null,null,0,0],[1,1,1,1,1,1,1,1,1]]");
-   // playerState = 0;
-
-   // complicated Ko position 2
-   // board_struct = JSON.parse("[[1,1,1,null,null,null,null,null,0],[null,null,null,null,null,null,null,null,null],[null,null,0,0,0,0,0,0,null],[null,null,0,1,1,1,1,0,null],[null,null,0,1,null,0,1,0,null],[null,null,0,1,1,1,1,0,null],[null,null,0,0,0,0,0,0,0],[null,null,null,null,null,null,null,0,0],[1,1,1,1,1,1,1,1,1]]");
-   // playerState = 1;
-
-   // complicated Ko position 3
-   // board_struct = JSON.parse("[[1,1,1,null,null,null,null,null,0],[null,null,null,null,null,null,null,null,null],[null,null,0,0,0,0,0,0,null],[null,null,0,1,1,1,1,0,null],[null,null,0,1,1,null,1,0,null],[null,null,0,1,1,1,1,0,null],[null,null,0,0,0,0,0,0,0],[null,null,null,null,null,null,null,0,0],[1,1,1,1,1,1,1,1,1]]");
-   // playerState = 0;
-
-   // some straight lines
-   // board_struct = JSON.parse("[[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,0,0,0,1,1,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null]]");
-   // playerState = 1;
-
-   //some broken board state
-   // board_struct = JSON.parse("[[0,0,0,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,0,0,0,1,1,1,null],[null,null,null,null,null,null,1,1,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null]]");
-   // playerState = 1;
-
-   //white to be captured by black
-   // board_struct = JSON.parse("[[0,0,0,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,0,1,0,null,null,null],[null,null,0,0,0,1,1,1,null],[null,null,null,null,null,1,1,1,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null]]");
-   // playerState = 0;
-
-   //many white to be captured by black
-   // board_struct = JSON.parse("[[0,0,0,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null],[null,null,null,0,1,0,null,0,0],[null,null,0,0,0,1,1,1,1],[null,null,null,null,0,1,1,1,1],[null,null,null,null,null,0,0,0,1],[null,null,null,null,null,null,null,null,0],[1,1,1,0,0,null,1,1,null]]");
-   // playerState = 0;
-
-   // turning point :(
-   // board_struct = JSON.parse("[[null,null,null,null,null,0,1,0,null],[null,null,null,null,null,0,1,0,null],[null,null,0,1,1,0,1,0,1],[null,null,0,1,0,0,1,0,1],[null,null,0,1,1,0,1,1,null],[null,null,null,null,0,1,1,null,1],[null,null,0,null,null,0,0,1,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null]])
-
-
-   // turning point =)
-   // board_struct = JSON.parse("[[null,null,null,null,null,0,1,0,null],[null,null,null,null,null,0,1,0,null],[null,null,0,1,1,0,1,0,1],[null,null,0,1,0,0,1,0,1],[null,null,0,1,1,0,1,1,null],[null,null,null,null,0,1,1,0,null],[null,null,0,null,null,0,0,1,null],[null,null,null,null,null,null,null,null,null],[null,null,null,null,null,null,null,null,null]]")
-   // playerState = 1;
-
-   drawBoardFromStruct(board_struct);
-
-   PUBNUB.each(tiles, function(ele) {
-       PUBNUB.bind('click', ele, function(click_event) {
-           processClick(ele);
-       });
-   });
+   drawBoardFromStruct();
 
    var pass = function() {
        playerState = (playerState == 0) ? 1 : 0;
        current_player_ele.innerHTML = playerState == 1 ? 'White' : 'Black';
-   };
+   }
 
    PUBNUB.bind('click', document.getElementById('pass'), pass);
 
