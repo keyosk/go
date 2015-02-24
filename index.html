@@ -2,86 +2,46 @@
 
 <head>
     <title>Go</title>
-    <style type="text/css">
-    body,
-    html {
-        margin: 0px;
-        padding: 0px;
-        background-color: tan;
-    }
-    #details {
-        float: left;
-        margin-left: 50px;
-    }
-    #container {
-        padding-left: 100px;
-        padding-top: 50px;
-        padding-bottom: 25px;
-        min-width:500px;
-        float: left;
-    }
-    #container table {
-        background-color: tan;
-        border-collapse: collapse;
-    }
-    #container table tr td {
-        border: 4px solid brown;
-        padding: 0px;
-        margin: 0px;
-        width: 50px;
-        height: 50px;
-    }
-    #container table tr td:nth-last-child(1) {
-        border: 0px;
-    }
-    #container table tr:nth-last-child(1) td {
-        border: 0px;
-    }
-    #container table tr td div {
-        width: 50px;
-        height: 50px;
-        border-radius: 30px;
-        position: relative;
-        top: -25px;
-        left: -25px;
-        text-align: center;
-    }
-    #container table tr td div:hover {
-        background-color: rgba(255, 255, 255, .4);
-        cursor: pointer;
-    }
-    #container table tr td.black div {
-        background-color: black !important;
-    }
-    #container table tr td.white div {
-        background-color: white !important;
-    }
-    #container table tr td div span {
-        color: white;
-        top: 16px;
-        position: relative;
-    }
-    #container table tr td.white div span {
-        color: black;
-    }
-    </style>
+    <link href='http://fonts.googleapis.com/css?family=Megrim|Roboto+Slab:400,300,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="style.css"/>
 </head>
 
 <body>
-    <div id="container"></div>
+    <div id="nav">
+        <div class="container">
+            <div id="logo"><h1>go</h1></div>
+            turn: <span id="current_player">Black</span>
+            <div id="lobby">Lobby : <a id="lobby_name_link" href="javascript:void(0)" target="_blank"></a></div>
+        </div>
+    </div>
+    <div class="container padded">
 
-    <div id="details">
-        <h2 id="current_player">Black</h2>
-        <div>Last Position : <span id="last_position"></span></div>
-        <div>Captured White Pieces : <span id="captured_white_pieces">0</span></div>
-        <div>Captured Black Pieces : <span id="captured_black_pieces">0</span></div>
-        <div><a href="javascript:void(0);" id="pass">Pass</a></div>
-        <div><a href="javascript:void(0);" id="undo">Undo</a></div>
-        <div>Lobby Name : <a id="lobby_name_link" href="javascript:void(0)" target="_blank"></a></div>
+        <div id="meta">
+
+            <div class="score white" id="white_score">
+                <div class="piece"></div>
+                <span id="captured_black_pieces">0</span>
+            </div>
+
+            <a href="javascript:void(0);" id="pass"><div class="pass">PASS</div></a>
+
+            <div><a href="javascript:void(0);" id="undo">Undo</a></div>
+
+            <div>Last Position : <span id="last_position"></span></div>
+
+            <div class="score black" id="black_score">
+                <div class="piece"></div>
+                <div id="captured_white_pieces">0</div>
+            </div>
+
+        </div>
+
+        <div id="game"></div>
+
+    </div>
 
         <script src="http://cdn.pubnub.com/pubnub-3.7.8.js" type="text/javascript"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.1/underscore.js" type="text/javascript"></script>
-
         <script src="go.js" type="text/javascript"></script>
 </body>
 

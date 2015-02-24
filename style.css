@@ -1,0 +1,168 @@
+body,
+html {
+    margin: 0px;
+    padding: 0px;
+    background: url(img/stardust.png);
+    font-family: 'Roboto Slab', serif;
+}
+#details {
+    float: left;
+    margin-left: 50px;
+}
+
+#nav{
+    height: 45px;
+    background: white;
+    width: 100%;
+    -webkit-box-shadow: 0 0 4px 0 rgba(0,0,0,1);
+    box-shadow: 0 0 4px 0 rgba(0,0,0,1);
+}
+
+h1{
+    margin: 0px;
+}
+h2{
+    font-family: 'Megrim', cursive;
+}
+
+#nav #logo{
+    font-family: 'Megrim', cursive;
+    float: left;
+}
+
+#nav #lobby{
+    float:right;
+}
+
+#nav .container{
+    padding: 0px 25px;
+}
+
+#meta {
+    width: 150px;
+    float: left;
+    margin-right: 25px;
+}
+
+.score{
+    -webkit-box-shadow: 0 0 4px 0 rgba(0,0,0,1);
+    box-shadow: 0 0 4px 0 rgba(0,0,0,1);
+    background: #7B7B7B;
+    text-align: center;
+    font-size: 30px;
+    padding: 20px;
+    color: white;
+}
+
+.score.black .piece{
+    background: black;
+    margin: 0px auto 20px auto;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+}
+.score.white .piece{
+    background: white;
+    margin: 0px auto 20px auto;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+}
+
+.highlight{
+    -webkit-box-shadow: 0 0 4px 0 #3B3DFF;
+    box-shadow: 0 0 4px 0 #3B3DFF;
+}
+
+#pass{
+    text-decoration: none;
+}
+
+.pass{
+    padding: 10px 10px;
+    background: #7B7B7B;
+    margin: 25px 0px;
+    text-align: center;
+    -webkit-box-shadow: 0 0 4px 0 rgba(0,0,0,1);
+    box-shadow: 0 0 4px 0 rgba(0,0,0,1);
+    font-family: 'Megrim', cursive;
+    font-size: 35px;
+    color: white !important;
+}
+
+.container {
+    max-width: 1280px;
+    margin: auto;
+}
+.container.padded{
+    padding: 25px;
+    overflow: auto;
+}
+
+#game{
+    overflow: auto;
+    padding: 50px 0px 0px 50px;
+    background: url(img/purty_wood.png);
+    float:left;
+    -webkit-box-shadow: 0 0 4px 0 rgba(0,0,0,1);
+    box-shadow: 0 0 4px 0 rgba(0,0,0,1);
+    border-radius: 2px;
+}
+
+#game table {
+    border-collapse: collapse;
+    border:0px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+#game table tr td {
+    border: 2px solid brown;
+    padding: 0px;
+    margin: 0px;
+    width: 50px;
+    height: 50px;
+}
+#game table tr td:nth-last-child(1) {
+    border: 0px;
+}
+#game table tr:nth-last-child(1) td {
+    border: 0px;
+}
+#game table tr td div {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    position: relative;
+    top: -25px;
+    left: -21px;
+    text-align: center;
+}
+#game table tr td div:hover {
+    background-color: rgba(255, 255, 255, .4);
+    cursor: pointer;
+}
+#game table tr td.black div {
+    background-color: black !important;
+    -webkit-box-shadow: 0 0px 2px 0px rgba(0,0,0,.7);
+    box-shadow: 0 0px 2px 0px rgba(0,0,0,.7);
+}
+#game table tr td.white div {
+    background-color: white !important;
+    -webkit-box-shadow: 0 0px 2px 0px rgba(0,0,0,.7);
+    box-shadow: 0 0px 2px 0px rgba(0,0,0,.7);
+}
+#game table tr td div span {
+    color: transparent !important;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    top: 16px;
+    position: relative;
+}

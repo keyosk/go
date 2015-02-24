@@ -1,6 +1,6 @@
    (function() {
 
-       var containerEle = document.getElementById('container');
+       var containerEle = document.getElementById('game');
 
        var lastPositionEle = document.getElementById('last_position');
 
@@ -391,6 +391,7 @@
        var pass = function() {
            currentPlayer = (currentPlayer == 0) ? 1 : 0;
            currentPlayerEle.innerHTML = currentPlayer == 1 ? 'White' : 'Black';
+
        };
 
        var processPubNubPayload = function(m) {
