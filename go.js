@@ -2,6 +2,8 @@
 
        var containerEle = document.getElementById('container');
 
+       var lastPositionEle = document.getElementById('last_position');
+
        var elementsCache;
 
        var boardStruct;
@@ -25,9 +27,11 @@
 
        var lobbyName = (location.href.match(/room=([^&]+)/) || ['']).slice(-1)[0] || PUBNUB.uuid();
 
-       var VERSION = '0.0.1';
+       var VERSION = '0.0.2';
 
        var pubnubDataChannel = 'go-game-' + VERSION + '-' + lobbyName;
+
+       var lastPosition = '';
 
        var pubnubInstance = PUBNUB.init({
            'subscribe_key': 'demo',
@@ -118,6 +122,8 @@
 
                        capturedWhitePiecesEle.innerHTML = whitePrisoners;
                        capturedBlackPiecesEle.innerHTML = blackPrisoners;
+
+                       lastPositionEle.innerHTML = lastPosition; 
                    }
                }
 
@@ -369,6 +375,8 @@
                // console.log(' ');
                return false;
            }
+
+           lastPosition = (forPlayer == 1 ? 'White' : 'Black') + ' @ ' +(parseInt(x) + 1) + ',' + (parseInt(y) + 1);
 
            pass();
 
