@@ -66,14 +66,14 @@ h1 a{
     color: white;
 }
 
-.score.black .piece{
+.score.Black .piece{
     background: black;
     margin: 0px auto 20px auto;
     width: 40px;
     height: 40px;
     border-radius: 20px;
 }
-.score.white .piece{
+.score.White .piece{
     background: white;
     margin: 0px auto 20px auto;
     width: 40px;
@@ -159,12 +159,12 @@ h1 a{
     background-color: rgba(255, 255, 255, .4);
     cursor: pointer;
 }
-#game table tr td.black div {
+#game table tr td.Black div {
     background-color: black !important;
     -webkit-box-shadow: 0 0px 2px 0px rgba(0,0,0,.7);
     box-shadow: 0 0px 2px 0px rgba(0,0,0,.7);
 }
-#game table tr td.white div {
+#game table tr td.White div {
     background-color: white !important;
     -webkit-box-shadow: 0 0px 2px 0px rgba(0,0,0,.7);
     box-shadow: 0 0px 2px 0px rgba(0,0,0,.7);
