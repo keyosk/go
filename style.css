@@ -32,6 +32,11 @@ h2{
     padding-right: 20px;
 }
 
+h1 a{
+    text-decoration: none;
+    color: black;
+}
+
 #nav #lastPositionHolder {
     float:left;
 }
