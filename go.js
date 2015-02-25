@@ -20,6 +20,7 @@
        SELF['containerEle'] = setup['containerEle'];
        SELF['lastPositionEle'] = setup['lastPositionEle'];
        SELF['currentPlayerEle'] = setup['currentPlayerEle'];
+       SELF['playedPositionsEle'] = setup['playedPositionsEle'];
        SELF['capturedWhitePiecesEle'] = setup['capturedWhitePiecesEle'];
        SELF['capturedBlackPiecesEle'] = setup['capturedBlackPiecesEle'];
 
@@ -27,6 +28,8 @@
        SELF['boardSize'] = setup['boardSize'];
 
        SELF['clickCallback'] = setup['clickCallback'];
+
+       SELF['playedPositions'] = [];
 
        SELF['getOppositePlayer'] = function(forPlayer) {
          return (forPlayer === 0) ? 1 : 0
@@ -98,6 +101,12 @@
                SELF['lastPositionEle'].innerHTML = SELF['lastPosition'];
              }
            }
+         }
+
+         for (var idx in SELF['playedPositions']) {
+           var li = document.createElement('li');
+           li.innerHTML = SELF['playedPositions'][idx];
+           SELF['playedPositionsEle'].appendChild(li);
          }
 
        };
@@ -318,6 +327,8 @@
 
          SELF['lastPosition'] = SELF['getColorClass'](forPlayer) + ' @ ' + (parseInt(x) + 1) + ',' + (parseInt(y) + 1);
 
+         SELF['playedPositions'].push(SELF['lastPosition']);
+
          SELF['switchCurrentPlayer']();
 
          SELF['drawBoardFromStruct']();
@@ -354,6 +365,8 @@
          SELF['whitePrisoners'] = 0;
          SELF['currentPlayer'] = 0;
          SELF['lastPosition'] = '';
+
+         SELF['playedPositions'] = [];
 
          SELF['drawBoardFromStruct']();
          SELF['changeCurrentPlayerText']();
@@ -398,6 +411,7 @@
        GO = CREATE_GO({
          'containerEle': document.getElementById('game'),
          'lastPositionEle': document.getElementById('last_position'),
+         'playedPositionsEle': document.getElementById('played_positions'),
          'currentPlayerEle': document.getElementById('current_player'),
          'capturedWhitePiecesEle': document.getElementById('captured_white_pieces'),
          'capturedBlackPiecesEle': document.getElementById('captured_black_pieces'),
