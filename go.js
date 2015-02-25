@@ -44,7 +44,7 @@
 
        var VERSION = '0.0.2';
 
-       var pubnubDataChannel = 'go-game-' + VERSION + '-' + lobbyName;
+       var pubnubDataChannel = 'go-game-' + VERSION + '-' + lobbyName + '-' + boardSize;
 
        var lastPosition = '';
 
