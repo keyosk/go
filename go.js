@@ -26,9 +26,9 @@
        var boardSize = (document.location.hash.match(/boardSize=([^&]+)/) || ['']).slice(-1)[0] || 9;
 
        if (boardSize > 19) {
-        boardSize = 19;
+           boardSize = 19;
        } else if (boardSize < 3) {
-        boardSize = 3;
+           boardSize = 3;
        }
 
        var currentPlayerEle = document.getElementById('current_player');
@@ -49,8 +49,8 @@
        var lastPosition = '';
 
        var pubnubInstance = PUBNUB.init({
-           'subscribe_key': 'demo',
-           'publish_key': 'demo'
+           'subscribe_key': 'sub-c-cbcff300-bb84-11e3-b6e0-02ee2ddab7fe',
+           'publish_key': 'pub-c-01bb4e6e-4ad8-4c62-9b72-5278a11cf9e5'
        });
 
 
