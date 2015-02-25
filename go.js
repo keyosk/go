@@ -1,10 +1,21 @@
    (function() {
 
+       var randomString = function(len) {
+           var text = '';
+           var charset = 'abcdefghijklmnopqrstuvwxyz0123456789';
+           for (var i = 0; i < len; i++) {
+               text += charset.charAt(Math.floor(Math.random() * charset.length));
+           }
+           return text;
+       };
+
        var CREATE_GO = function(setup) {
 
            var SELF = function(setup) {
                return CREATE_GO(setup);
            };
+
+           var findLibertyRecurseSafety = 0;
 
            SELF['containerEle'] = setup['containerEle'];
            SELF['lastPositionEle'] = setup['lastPositionEle'];
@@ -14,16 +25,12 @@
 
            SELF['lobbyName'] = setup['lobbyName'];
            SELF['boardSize'] = setup['boardSize'];
-           SELF['pubnubUUID'] = setup['pubnubUUID'];
 
-           SELF['elementsCache'] = null;
-           SELF['boardStruct'] = [];
-           SELF['whitePrisoners'] = 0;
-           SELF['blackPrisoners'] = 0;
-           SELF['currentPlayer'] = 0;
-           SELF['lastPosition'] = '';
+           SELF['clickCallback'] = setup['clickCallback'];
 
-           var findLibertyRecurseSafety = 0;
+           SELF['getOppositePlayer'] = function(forPlayer) {
+               return (forPlayer === 0) ? 1 : 0
+           };
 
            SELF['createEmptyBoardStruct'] = function() {
 
@@ -63,6 +70,19 @@
                    }
 
                    SELF['containerEle'].appendChild(tableEle);
+
+                   _.each(SELF['elementsCache'], function(row, x) {
+                       _.each(row, function(ele, y) {
+                           PUBNUB.bind('click', ele.children[0], function() {
+                               x = parseInt(x);
+                               y = parseInt(y);
+                               var result = SELF['moveStoneToXY'](SELF['currentPlayer'], x, y);
+                               if (result && 'function' === typeof SELF['clickCallback']) {
+                                   SELF['clickCallback'](x, y, SELF['getOppositePlayer'](SELF['currentPlayer']));
+                               }
+                           });
+                       });
+                   });
 
                } else {
 
@@ -229,7 +249,7 @@
 
                var adjacentPositions = SELF['adjacentPositionFinder'](x, y);
 
-               var opponentPlayer = (forPlayer == 0) ? 1 : 0;
+               var opponentPlayer = SELF['getOppositePlayer'](forPlayer);
 
                adjacentPositions = _.filter(adjacentPositions, function(item) {
                    var _x = item[0];
@@ -298,7 +318,7 @@
 
                SELF['lastPosition'] = SELF['getColorClass'](forPlayer) + ' @ ' + (parseInt(x) + 1) + ',' + (parseInt(y) + 1);
 
-               SELF['pass']();
+               SELF['switchCurrentPlayer']();
 
                SELF['drawBoardFromStruct']();
 
@@ -310,14 +330,10 @@
                SELF['currentPlayerEle'].innerHTML = SELF['getColorClass'](SELF['currentPlayer']);
            };
 
-
-
-           SELF['pass'] = function() {
-               SELF['currentPlayer'] = (SELF['currentPlayer'] == 0) ? 1 : 0;
+           SELF['switchCurrentPlayer'] = function() {
+               SELF['currentPlayer'] = SELF['getOppositePlayer'](SELF['currentPlayer']);
                SELF['changeCurrentPlayerText']();
            };
-
-
 
            SELF['getColorClass'] = function(colorState) {
                var color = '';
@@ -328,7 +344,6 @@
                }
                return color;
            };
-
 
            SELF['init'] = function() {
 
@@ -349,18 +364,9 @@
            return SELF;
        };
 
-       var rand = function(len) {
-           var text = '';
-           var charset = 'abcdefghijklmnopqrstuvwxyz0123456789';
-           for (var i = 0; i < len; i++) {
-               text += charset.charAt(Math.floor(Math.random() * charset.length));
-           }
-           return text;
-       };
-
        (function init() {
 
-           var lobbyName = (document.location.hash.match(/room=([^&]+)/) || ['']).slice(-1)[0] || rand(5);
+           var lobbyName = (document.location.hash.match(/room=([^&]+)/) || ['']).slice(-1)[0] || randomString(5);
 
            var boardSize = (document.location.hash.match(/boardSize=([^&]+)/) || ['']).slice(-1)[0] || 9;
 
@@ -380,16 +386,6 @@
 
            var VERSION = '0.0.2';
 
-           GO = CREATE_GO({
-               'containerEle': document.getElementById('game'),
-               'lastPositionEle': document.getElementById('last_position'),
-               'currentPlayerEle': document.getElementById('current_player'),
-               'capturedWhitePiecesEle': document.getElementById('captured_white_pieces'),
-               'capturedBlackPiecesEle': document.getElementById('captured_black_pieces'),
-               'lobbyName': lobbyName,
-               'boardSize': boardSize
-           });
-
            var pubnubInstance = PUBNUB.init({
                'subscribe_key': 'sub-c-cbcff300-bb84-11e3-b6e0-02ee2ddab7fe',
                'publish_key': 'pub-c-01bb4e6e-4ad8-4c62-9b72-5278a11cf9e5'
@@ -398,6 +394,29 @@
            var pubnubUUID = PUBNUB.uuid();
 
            var pubnubDataChannel = 'go-game-' + VERSION + '-' + lobbyName + '-' + boardSize;
+
+           GO = CREATE_GO({
+               'containerEle': document.getElementById('game'),
+               'lastPositionEle': document.getElementById('last_position'),
+               'currentPlayerEle': document.getElementById('current_player'),
+               'capturedWhitePiecesEle': document.getElementById('captured_white_pieces'),
+               'capturedBlackPiecesEle': document.getElementById('captured_black_pieces'),
+               'lobbyName': lobbyName,
+               'boardSize': boardSize,
+               'clickCallback': function(x, y, forPlayer) {
+                   pubnubInstance.publish({
+                       'channel': pubnubDataChannel,
+                       'message': {
+                           'type': 'move',
+                           'forPlayer': forPlayer,
+                           'x': x,
+                           'y': y,
+                           'pubnubUUID': pubnubUUID,
+                           'time': (new Date().getTime())
+                       }
+                   });
+               }
+           });
 
            PUBNUB.bind('click', document.getElementById('pass'), function() {
                if (confirm('Are you sure you want to Pass?')) {
@@ -410,7 +429,6 @@
                            'time': (new Date().getTime())
                        }
                    });
-                   GO.pass();
                }
            });
 
@@ -436,7 +454,7 @@
                            GO.moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
                        } else if (m.type === 'pass' && 'forPlayer' in m) {
                            if (parseInt(GO.currentPlayer) === parseInt(m.forPlayer)) {
-                               GO.pass();
+                               GO.switchCurrentPlayer();
                            }
                        } else if (m.type === 'undo') {
                            setTimeout(function() {
@@ -481,7 +499,7 @@
                                        GO.moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
                                    } else if (m.type === 'pass' && 'forPlayer' in m) {
                                        if (parseInt(GO.currentPlayer) === parseInt(m.forPlayer)) {
-                                           GO.pass();
+                                           GO.switchCurrentPlayer();
                                        }
                                    }
                                }
@@ -493,32 +511,7 @@
 
            };
 
-
            requestPubNubHistory();
-
-
-           PUBNUB.each(GO['elementsCache'], function(row, x) {
-               PUBNUB.each(row, function(ele, y) {
-                   PUBNUB.bind('click', ele.children[0], function() {
-                       x = parseInt(x);
-                       y = parseInt(y);
-                       var result = GO.moveStoneToXY(GO.currentPlayer, x, y);
-                       if (result) {
-                           pubnubInstance.publish({
-                               'channel': pubnubDataChannel,
-                               'message': {
-                                   'type': 'move',
-                                   'forPlayer': (GO.currentPlayer == 0) ? 1 : 0,
-                                   'x': x,
-                                   'y': y,
-                                   'pubnubUUID': pubnubUUID,
-                                   'time': (new Date().getTime())
-                               }
-                           });
-                       }
-                   });
-               });
-           });
 
        }());
 
