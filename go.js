@@ -446,70 +446,67 @@
          }
        });
 
-       pubnubInstance.subscribe({
-         'channel': pubnubDataChannel,
-         'callback': function(m) {
-           if ('type' in m) {
-             if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
-               GO.moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
-             } else if (m.type === 'pass' && 'forPlayer' in m) {
-               if (parseInt(GO.currentPlayer) === parseInt(m.forPlayer)) {
-                 GO.switchCurrentPlayer();
+       var processPubNubPayload = function(m, forHistory) {
+         if ('undid' in m) {
+           return;
+         }
+         if ('type' in m) {
+           if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
+             GO.moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
+           } else if (m.type === 'pass' && 'forPlayer' in m) {
+             if (parseInt(GO.currentPlayer) === parseInt(m.forPlayer)) {
+               GO.switchCurrentPlayer();
+             }
+           } else if (m.type === 'undo' && forHistory === false) {
+             setTimeout(function() {
+               GO.init();
+               requestPubNubHistory();
+             }, 500);
+           }
+         }
+       };
+
+       var rollBackHistoryUsingUndo = function(messages) {
+         for (var idx in messages) {
+           if ('type' in messages[idx] && messages[idx].type === 'undo') {
+             var undoIndex = idx;
+             while (undoIndex - 1 >= 0) {
+               undoIndex = undoIndex - 1;
+               if (undoIndex >= 0) {
+                 if ('type' in messages[undoIndex] && messages[undoIndex].type !== 'undo' && !('undid' in messages[undoIndex])) {
+                   messages[undoIndex].undid = true;
+                   break;
+                 }
+               } else {
+                 break;
                }
-             } else if (m.type === 'undo') {
-               setTimeout(function() {
-                 GO.init();
-                 requestPubNubHistory();
-               }, 500);
              }
            }
          }
-       });
+         return messages;
+       };
 
        var requestPubNubHistory = function() {
-
          pubnubInstance.history({
            'channel': pubnubDataChannel,
            'callback': function(messages) {
              if (messages[0].length) {
-
+               messages[0] = rollBackHistoryUsingUndo(messages[0]);
                for (var idx in messages[0]) {
-                 var m = messages[0][idx]
-                 if ('type' in m && m.type === 'undo') {
-                   var undoIndex = idx;
-                   while (undoIndex - 1 >= 0) {
-                     undoIndex = undoIndex - 1;
-                     if (undoIndex >= 0) {
-                       var _m = messages[0][undoIndex];
-                       if ('type' in _m && _m.type !== 'undo') {
-                         messages[0][undoIndex] = {};
-                         break;
-                       }
-                     } else {
-                       break;
-                     }
-                   }
-                 }
-               }
-
-               for (var idx in messages[0]) {
-                 var m = messages[0][idx]
-                 if ('type' in m) {
-                   if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
-                     GO.moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
-                   } else if (m.type === 'pass' && 'forPlayer' in m) {
-                     if (parseInt(GO.currentPlayer) === parseInt(m.forPlayer)) {
-                       GO.switchCurrentPlayer();
-                     }
-                   }
-                 }
+                 processPubNubPayload(messages[0][idx], true);
                }
              }
            },
            'error': function() {}
          });
-
        };
+
+       pubnubInstance.subscribe({
+         'channel': pubnubDataChannel,
+         'callback': function(m) {
+           processPubNubPayload(m, false);
+         }
+       });
 
        requestPubNubHistory();
 
