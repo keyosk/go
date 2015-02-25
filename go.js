@@ -20,9 +20,13 @@
        SELF['containerEle'] = setup['containerEle'];
        SELF['lastPositionEle'] = setup['lastPositionEle'];
        SELF['currentPlayerEle'] = setup['currentPlayerEle'];
-       SELF['playedPositionsEle'] = setup['playedPositionsEle'];
+
        SELF['capturedWhitePiecesEle'] = setup['capturedWhitePiecesEle'];
        SELF['capturedBlackPiecesEle'] = setup['capturedBlackPiecesEle'];
+
+       SELF['playedPositionsEle'] = setup['playedPositionsEle'];
+       SELF['templatePlayedPositionsEle'] = setup['templatePlayedPositionsEle'];
+       SELF['templatePlayedPositions'] = null;
 
        SELF['lobbyName'] = setup['lobbyName'];
        SELF['boardSize'] = setup['boardSize'];
@@ -103,13 +107,7 @@
            }
          }
 
-         SELF['playedPositionsEle'].innerHTML = '';
-         for (var idx in SELF['playedPositions']) {
-           var li = document.createElement('li');
-           li.innerHTML = SELF['playedPositions'][idx];
-           SELF['playedPositionsEle'].appendChild(li);
-         }
-
+         SELF['playedPositionsEle'].innerHTML = SELF['templatePlayedPositions']({playedPositions: SELF['playedPositions']});
        };
 
        SELF['getPositionValid'] = function(forPlayer, x, y) {
@@ -369,6 +367,11 @@
 
          SELF['playedPositions'] = [];
 
+         if (SELF['templatePlayedPositions'] === null) {
+
+           SELF['templatePlayedPositions'] = _.template(SELF['templatePlayedPositionsEle'].innerHTML.trim(), {'variable':'playedPositions'});
+         }
+
          SELF['drawBoardFromStruct']();
          SELF['changeCurrentPlayerText']();
        };
@@ -413,6 +416,7 @@
          'containerEle': document.getElementById('game'),
          'lastPositionEle': document.getElementById('last_position'),
          'playedPositionsEle': document.getElementById('played_positions'),
+         'templatePlayedPositionsEle': document.getElementById('template_played_positions'),
          'currentPlayerEle': document.getElementById('current_player'),
          'capturedWhitePiecesEle': document.getElementById('captured_white_pieces'),
          'capturedBlackPiecesEle': document.getElementById('captured_black_pieces'),
