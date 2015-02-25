@@ -25,6 +25,10 @@
 
        var boardSize = (document.location.hash.match(/boardSize=([^&]+)/) || ['']).slice(-1)[0] || 9;
 
+       if (boardSize > 19) {
+        boardSize = 19;
+       }
+
        var currentPlayerEle = document.getElementById('current_player');
 
        var lobbyNameLink = document.getElementById('lobby_name_link');
