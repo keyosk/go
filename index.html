@@ -1,53 +1,61 @@
 <html>
 
-<head>
+  <head>
     <title>Go</title>
     <link href='http://fonts.googleapis.com/css?family=Megrim|Roboto+Slab:400,300,700' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="style.css"/>
-</head>
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-<body>
+  <body>
     <div id="nav">
-        <div class="container">
-            <div id="logo"><h1><a href="" title="gonub">gonub</a></h1></div>
-            <div id="lastPositionHolder">
-                <div>
-                Turn: <span id="current_player">Black</span>
-            </div>
-                <div>
-                Last Position : <span id="last_position"></span>
-            </div>
-            </div>
-            <div id="lobby">Lobby : <a id="lobby_name_link" href="javascript:void(0)" target="_blank"></a></div>
+      <div class="container">
+        <div id="logo">
+          <h1><a href="" title="gonub">gonub</a></h1>
         </div>
+        <div id="lastPositionHolder">
+          <div>
+            Turn: <span id="current_player">Black</span>
+          </div>
+          <div>
+            Last Position : <span id="last_position"></span>
+          </div>
+        </div>
+        <div id="lobby">Lobby :
+          <a id="lobby_name_link" href="javascript:void(0)" target="_blank"></a>
+        </div>
+      </div>
     </div>
     <div class="container padded">
 
-        <div id="meta">
+      <div id="meta">
 
-            <div class="score black" id="black_score">
-                <div class="piece"></div>
-                <span id="captured_black_pieces">0</span>
-            </div>
-
-            <a href="javascript:void(0);" id="pass"><div class="pass">PASS</div></a>
-
-            <a href="javascript:void(0);" id="undo"><div class="undo">UNDO</div></a>
-
-            <div class="score white" id="white_score">
-                <div class="piece"></div>
-                <div id="captured_white_pieces">0</div>
-            </div>
+        <div class="score black" id="black_score">
+          <div class="piece"></div>
+          <span id="captured_black_pieces">0</span>
         </div>
 
-        <div id="game"></div>
+        <a href="javascript:void(0);" id="pass">
+          <div class="pass">PASS</div>
+        </a>
+
+        <a href="javascript:void(0);" id="undo">
+          <div class="undo">UNDO</div>
+        </a>
+
+        <div class="score white" id="white_score">
+          <div class="piece"></div>
+          <div id="captured_white_pieces">0</div>
+        </div>
+      </div>
+
+      <div id="game"></div>
 
     </div>
 
-        <script src="http://cdn.pubnub.com/pubnub-3.7.8.js" type="text/javascript"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.1/underscore.js" type="text/javascript"></script>
-        <script src="go.js" type="text/javascript"></script>
-</body>
+    <script src="http://cdn.pubnub.com/pubnub-3.7.8.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.1/underscore.js" type="text/javascript"></script>
+    <script src="go.js" type="text/javascript"></script>
+  </body>
 
 
 </html>
