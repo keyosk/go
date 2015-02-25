@@ -27,6 +27,8 @@
 
        if (boardSize > 19) {
         boardSize = 19;
+       } else if (boardSize < 3) {
+        boardSize = 3;
        }
 
        var currentPlayerEle = document.getElementById('current_player');
