@@ -23,7 +23,7 @@
 
        var currentPlayer = 0;
 
-       var boardSize = (location.href.match(/boardSize=([^&]+)/) || ['']).slice(-1)[0] || 9;
+       var boardSize = (document.location.hash.match(/boardSize=([^&]+)/) || ['']).slice(-1)[0] || 9;
 
        var currentPlayerEle = document.getElementById('current_player');
 
@@ -34,7 +34,7 @@
 
        var findLibertyRecurseSafety = 0;
 
-       var lobbyName = (location.href.match(/room=([^&]+)/) || ['']).slice(-1)[0] || rand(5);
+       var lobbyName = (document.location.hash.match(/room=([^&]+)/) || ['']).slice(-1)[0] || rand(5);
 
        var VERSION = '0.0.2';
 
@@ -474,19 +474,9 @@
 
        (function init() {
 
-           var searchString = '';
+           var hashString = 'room=' + lobbyName + '&boardSize=' + boardSize;
 
-           if ((location.href.match(/room=([^&]+)/) || ['']).slice(-1)[0] !== lobbyName) {
-               searchString = '?room=' + lobbyName;
-           }
-
-           if ((location.href.match(/boardSize=([^&]+)/) || ['']).slice(-1)[0] != boardSize) {
-               searchString = searchString + '&boardSize=' + boardSize;
-           }
-
-           if (searchString !== '') {
-               document.location.search = searchString;
-           }
+           document.location.hash = hashString;
 
            boardStruct = createEmptyBoardStruct();
 
@@ -524,7 +514,7 @@
            });
 
            lobbyNameLink.innerHTML = lobbyName;
-           lobbyNameLink.href = '?room=' + lobbyName + '&boardSize=' + boardSize;
+           lobbyNameLink.href = '#' + hashString;
 
            pubnubInstance.subscribe({
                'channel': pubnubDataChannel,
