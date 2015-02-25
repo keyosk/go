@@ -326,7 +326,7 @@
 
          SELF['lastPosition'] = SELF['getColorClass'](forPlayer) + ' @ ' + (parseInt(x) + 1) + ',' + (parseInt(y) + 1);
 
-         SELF['playedPositions'].push(SELF['lastPosition']);
+         SELF['cachePlayedPosition'](forPlayer, 'move', x, y);
 
          SELF['switchCurrentPlayer']();
 
@@ -345,6 +345,12 @@
          SELF['changeCurrentPlayerText']();
        };
 
+       SELF['pass'] = function(forPlayer) {
+        SELF['cachePlayedPosition'](forPlayer,'pass');
+        SELF['switchCurrentPlayer']();
+        SELF['playedPositionsEle'].innerHTML = SELF['templatePlayedPositions']({playedPositions: SELF['playedPositions']});
+       };
+
        SELF['getColorClass'] = function(colorState) {
          var color = '';
          if (colorState === 0) {
@@ -353,6 +359,19 @@
            color = 'White';
          }
          return color;
+       };
+
+       SELF['cachePlayedPosition'] = function(forPlayer, type, x, y) {
+        var positionCache = {
+          'type': type,
+          'forPlayer': forPlayer,
+          'time': (new Date().getTime())
+        };
+        if (type === 'move') {
+          positionCache.x = x;
+          positionCache.y = x;
+        }
+         SELF['playedPositions'].push(positionCache);
        };
 
        SELF['init'] = function() {
@@ -474,7 +493,7 @@
              GO.moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
            } else if (m.type === 'pass' && 'forPlayer' in m) {
              if (parseInt(GO.currentPlayer) === parseInt(m.forPlayer)) {
-               GO.switchCurrentPlayer();
+               GO.pass(parseInt(m.forPlayer));
              }
            } else if (m.type === 'undo' && forHistory === false) {
              setTimeout(function() {
