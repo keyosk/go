@@ -51,7 +51,9 @@
       <div id="game"></div>
 
       <script type="text/template" id="template_played_positions">
-        <% _.each(playedPositions,function(position) { %>
+
+        <% console.log(data.playedPositions); %>
+        <% _.each(data.playedPositions,function(position) { %>
             <div> <%- position %> </div>
         <% }); %>
       </script>

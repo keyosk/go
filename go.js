@@ -369,7 +369,7 @@
 
          if (SELF['templatePlayedPositions'] === null) {
 
-           SELF['templatePlayedPositions'] = _.template(SELF['templatePlayedPositionsEle'].innerHTML.trim(), {'variable':'playedPositions'});
+           SELF['templatePlayedPositions'] = _.template(SELF['templatePlayedPositionsEle'].innerHTML.trim(), {'variable':'data'});
          }
 
          SELF['drawBoardFromStruct']();
