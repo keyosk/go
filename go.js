@@ -103,6 +103,7 @@
            }
          }
 
+         SELF['playedPositionsEle'].innerHTML = '';
          for (var idx in SELF['playedPositions']) {
            var li = document.createElement('li');
            li.innerHTML = SELF['playedPositions'][idx];
