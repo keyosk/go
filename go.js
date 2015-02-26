@@ -138,7 +138,7 @@
              SELF['lastPositionEle'].innerHTML = SELF['lastPosition'].text;
            }
 
-           if ('x' in SELF['lastPosition'] && 'y' in SELF['lastPosition']) {
+           if ('x' in SELF['lastPosition'] && 'y' in SELF['lastPosition']) {  
              SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className = SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className + ' lastPiecePlayed';
            }
 
@@ -583,13 +583,13 @@
            } else if (m.type === 'undo') {
              SELF['cachePlayedPosition'](m);
              if (forHistory === false) {
-               SELF['undo'](m.forPlayer);
+               SELF['undo']();
              }
            }
          }
        };
 
-       SELF['undo'] = function(forPlayer) {
+       SELF['undo'] = function() {
 
          var playedPositions = SELF['rollBackHistoryUsingUndo'](SELF['playedPositions']);
 
@@ -844,7 +844,7 @@
              'channel': pubnubDataChannel,
              'message': {
                'type': 'undo',
-               'forPlayer': GO.currentPlayer,
+               'forPlayer': GO.getOppositePlayer(GO.currentPlayer),
                'pubnubUUID': pubnubUUID,
                'time': (new Date().getTime())
              }
