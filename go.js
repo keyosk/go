@@ -648,7 +648,7 @@
                  if (messages.length === 0) {
                    return;
                  }
-                 var message = messages.pop();
+                 var message = messages.shift();
                  GO.processPubNubPayload(message, true);
                  setTimeout(handleMessagesRecursively, historyPlayBackSpeed);
                };
