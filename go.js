@@ -550,6 +550,21 @@
                if (SELF['movers'][m.forPlayer] && SELF['movers'][m.forPlayer] !== m.pubnubUUID) {
                  //Only allow a pass on your own turn
                } else {
+                 var lastPosition = SELF['playedPositions'][SELF['playedPositions'].length - 1];
+                 if (lastPosition.type === 'pass') {
+                   var results = SELF['attemptToCalculateAndAssignScores']();
+                   if (results[0] || results[1]) {
+                     var totalPointsBlack = parseInt(SELF['whitePrisoners']) + parseInt(results[0]);
+                     var totalPointsWhite = parseInt(SELF['blackPrisoners']) + parseInt(results[1]);
+                     if (totalPointsWhite > totalPointsBlack) {
+                       alert('White Wins!');
+                     } else if (totalPointsBlack > totalPointsWhite) {
+                       alert('Black Wins!');
+                     } else {
+                       alert('Draw');
+                     }
+                   }
+                 }
                  SELF['cachePlayedPosition'](m);
                  SELF['switchCurrentPlayer']();
                }
@@ -603,9 +618,9 @@
                findLibertyRecurseSafety = 0;
 
                var adjacentPositionsData = SELF['findDataForAdjacentPositions'](
-                 null, 
-                   [[x, y]]
-                 ,
+                 null, [
+                   [x, y]
+                 ],
                  adjacentPositions
                );
 
@@ -674,6 +689,10 @@
 
          SELF['scoreBlackEle'].innerHTML = parseInt(SELF['whitePrisoners']) + ' + ' + parseInt(turfFor0);
          SELF['scoreWhiteEle'].innerHTML = parseInt(SELF['blackPrisoners']) + ' + ' + parseInt(turfFor1);
+
+         return [
+           turfFor0, turfFor1
+         ];
 
        };
 
