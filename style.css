@@ -129,45 +129,6 @@ h1 a {
   width: 50px;
   height: 50px;
 }
-
-/* Style for right column of numbers */
-
-#game table tr td:nth-last-child(1) {
-  border: 0px;
-  position: relative;
-}
-#game table tr td:nth-last-child(1):before {
-  left: 25px;
-  top: -13px;
-}
-/* Style for bottom column of numbers */
-
-#game table tr:nth-last-child(1) td {
-  border: 0px;
-  position: relative;
-}
-#game table tr:nth-last-child(1) td:after {
-  left: -5px;
-  top: 18px;
-}
-/* Style for top column of numbers */
-
-#game table tr:nth-child(1) td {
-  position: relative;
-}
-#game table tr:nth-child(1) td:after {
-  top: -45px;
-  left: -5px;
-}
-/* Style for left column of numbers */
-
-#game table tr td:nth-child(1) {
-  position: relative;
-}
-#game table tr td:nth-child(1):before {
-  top: -13;
-  left: -37px;
-}
 #game table tr td div {
   width: 40px;
   height: 40px;
@@ -202,17 +163,46 @@ h1 a {
   position: relative;
   top: 10px;
   letter-spacing: 1px;
-  font-weight:500;
+  font-weight: 500;
 }
 #game table tr td div:hover span {
   color: brown;
 }
-
-
-/* left , right , bottom, top */
-
+/* right, bottom > column of numbers */
+#game table tr td:nth-last-child(1),
+#game table tr:nth-last-child(1) td {
+  border: 0px;
+}
+/* left, right, bottom, top > column of numbers */
+#game table tr td:nth-child(1),
+#game table tr td:nth-last-child(1),
+#game table tr:nth-last-child(1) td,
+#game table tr:nth-child(1) td {
+  position: relative;
+}
+/* left > column of numbers */
+#game table tr td:nth-child(1):before {
+  top: -13;
+  left: -37px;
+}
+/* right > column of numbers */
+#game table tr td:nth-last-child(1):before {
+  left: 25px;
+  top: -13px;
+}
+/* bottom > column of numbers */
+#game table tr:nth-last-child(1) td:after {
+  left: -5px;
+  top: 18px;
+}
+/* top > column of numbers */
+#game table tr:nth-child(1) td:after {
+  top: -45px;
+  left: -5px;
+}
+/* left, right, bottom, top > column of numbers */
 #game table tr td:nth-child(1):before,
-#game table tr td:nth-last-child(1):before,
+#game table tr td:nth-last-child(1):before, 
 #game table tr:nth-last-child(1) td:after,
 #game table tr:nth-child(1) td:after {
   position: absolute;
@@ -220,123 +210,140 @@ h1 a {
   z-index: 10;
   font-size: 12px;
 }
-
-/* left , right , bottom, top */
-
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(1) td:nth-child(1):before,
 #game table tr:nth-child(1) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(1):after,
 #game table tr:nth-child(1) td:nth-child(1):after {
   content: "1";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(2) td:nth-child(1):before,
 #game table tr:nth-child(2) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(2):after,
 #game table tr:nth-child(1) td:nth-child(2):after {
   content: "2";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(2) td:nth-child(1):before,
 #game table tr:nth-child(2) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(2):after,
 #game table tr:nth-child(1) td:nth-child(2):after {
   content: "2";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(3) td:nth-child(1):before,
 #game table tr:nth-child(3) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(3):after,
 #game table tr:nth-child(1) td:nth-child(3):after {
   content: "3";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(4) td:nth-child(1):before,
 #game table tr:nth-child(4) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(4):after,
 #game table tr:nth-child(1) td:nth-child(4):after {
   content: "4";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(5) td:nth-child(1):before,
 #game table tr:nth-child(5) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(5):after,
 #game table tr:nth-child(1) td:nth-child(5):after {
   content: "5";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(6) td:nth-child(1):before,
 #game table tr:nth-child(6) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(6):after,
 #game table tr:nth-child(1) td:nth-child(6):after {
   content: "6";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(7) td:nth-child(1):before,
 #game table tr:nth-child(7) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(7):after,
 #game table tr:nth-child(1) td:nth-child(7):after {
   content: "7";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(8) td:nth-child(1):before,
 #game table tr:nth-child(8) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(8):after,
 #game table tr:nth-child(1) td:nth-child(8):after {
   content: "8";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(9) td:nth-child(1):before,
 #game table tr:nth-child(9) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(9):after,
 #game table tr:nth-child(1) td:nth-child(9):after {
   content: "9";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(10) td:nth-child(1):before,
 #game table tr:nth-child(10) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(10):after,
 #game table tr:nth-child(1) td:nth-child(10):after {
   content: "10";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(11) td:nth-child(1):before,
 #game table tr:nth-child(11) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(11):after,
 #game table tr:nth-child(1) td:nth-child(11):after {
   content: "11";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(12) td:nth-child(1):before,
 #game table tr:nth-child(12) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(12):after,
 #game table tr:nth-child(1) td:nth-child(12):after {
   content: "12";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(13) td:nth-child(1):before,
 #game table tr:nth-child(13) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(13):after,
 #game table tr:nth-child(1) td:nth-child(13):after {
   content: "13";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(14) td:nth-child(1):before,
 #game table tr:nth-child(14) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(14):after,
 #game table tr:nth-child(1) td:nth-child(14):after {
   content: "14";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(15) td:nth-child(1):before,
 #game table tr:nth-child(15) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(15):after,
 #game table tr:nth-child(1) td:nth-child(15):after {
   content: "15";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(16) td:nth-child(1):before,
 #game table tr:nth-child(16) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(16):after,
 #game table tr:nth-child(1) td:nth-child(16):after {
   content: "16";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(17) td:nth-child(1):before,
 #game table tr:nth-child(17) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(17):after,
 #game table tr:nth-child(1) td:nth-child(17):after {
   content: "17";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(18) td:nth-child(1):before,
 #game table tr:nth-child(18) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(18):after,
 #game table tr:nth-child(1) td:nth-child(18):after {
   content: "18";
 }
+/* left, right, bottom, top > column of numbers */
 #game table tr:nth-child(19) td:nth-child(1):before,
 #game table tr:nth-child(19) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(19):after,
