@@ -163,18 +163,20 @@ h1 a {
   height: 20px !important;
   top: 9px;
   left: 9px;
-  -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
-  box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
 }
 #game table tr td.White.lastPiecePlayed div:before {
   border-color: black !important;
   background-color: white !important;
   border: 1px solid black !important;
+  -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+  box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
 }
 #game table tr td.Black.lastPiecePlayed div:before {
   border-color: white !important;
   background-color: black !important;
   border: 1px solid white !important;
+  -webkit-box-shadow: 0 0px 2px 0px rgba(255, 255, 255, .7);
+  box-shadow: 0 0px 2px 0px rgba(255, 255, 255, .7);
 }
 #game table tr td div span {
   color: transparent;
