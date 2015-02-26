@@ -208,6 +208,8 @@
            }
 
          }
+         
+         /* end logic to determine if an immediate recapture is taking place */
 
          if (numberPrisonersTaken) {
 
@@ -231,7 +233,6 @@
            }
 
          }
-         /* end logic to determine if an immediate recapture is taking place */
 
          if (Object.keys(adjacentPositionsData.liberties).length === 0 && numberPrisonersTaken === 0) {
            SELF['boardStruct'][x][y] = null;
