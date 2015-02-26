@@ -500,7 +500,9 @@
 
        var lobbyName = (document.location.hash.match(/room=([^&]+)/) || ['']).slice(-1)[0] || randomString(5);
 
-       var boardSize = (document.location.hash.match(/boardSize=([^&]+)/) || ['']).slice(-1)[0] || 9;
+       var boardSize = parseInt((document.location.hash.match(/boardSize=([^&]+)/) || ['']).slice(-1)[0]) || 9;
+
+       var historyPlayBackSpeed = parseInt((document.location.hash.match(/historyPlayBackSpeed=([^&]+)/) || ['']).slice(-1)[0] || 0);
 
        if (boardSize > 19) {
          boardSize = 19;
@@ -509,6 +511,10 @@
        }
 
        var hashString = 'room=' + lobbyName + '&boardSize=' + boardSize;
+
+       if (historyPlayBackSpeed !== 0) {
+        hashString = hashString + '&historyPlayBackSpeed=' + historyPlayBackSpeed;
+       }
 
        document.location.hash = hashString;
 
@@ -627,10 +633,30 @@
          'channel': pubnubDataChannel,
          'callback': function(messages) {
            if (messages.length) {
+
              messages = GO.rollBackHistoryUsingUndo(messages);
-             for (var idx in messages) {
-               GO.processPubNubPayload(messages[idx], true);
+
+             if (historyPlayBackSpeed === 0) {
+
+               for (var idx in messages) {
+                 GO.processPubNubPayload(messages[idx], true);
+               }
+
+             } else {
+
+               var handleMessagesRecursively = function() {
+                 if (messages.length === 0) {
+                   return;
+                 }
+                 var message = messages.pop();
+                 GO.processPubNubPayload(message, true);
+                 setTimeout(handleMessagesRecursively, historyPlayBackSpeed);
+               };
+
+               handleMessagesRecursively();
+
              }
+
            }
          },
          'error': function() {}
