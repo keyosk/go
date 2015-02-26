@@ -364,12 +364,12 @@
 
        SELF['cachePlayedPosition'] = function(m) {
 
-         if (!('time' in m)) {
-           m['time'] = (new Date().getTime());
-         }
-
          if (!('pubnubUUID' in m)) {
            m['pubnubUUID'] = SELF['pubnubUUID'];
+         }
+
+         if (!('time' in m)) {
+           m['time'] = (new Date().getTime());
          }
 
          SELF['playedPositions'].push(m);
@@ -381,6 +381,12 @@
        };
 
        SELF['rollBackHistoryUsingUndo'] = function(messages) {
+
+         //Remove all previous undids to prevent cludging
+         for (var idx in messages) {
+           delete messages[idx].undid;
+         }
+
          for (var idx in messages) {
            if ('type' in messages[idx] && messages[idx].type === 'undo') {
              var undoIndex = idx;
@@ -423,7 +429,6 @@
            } else if (m.type === 'undo' && forHistory === true) {
              //Only call undo during a subscribe, if this is being processed for history, it is already filtered
              SELF['cachePlayedPosition'](m);
-
            }
          }
        };
