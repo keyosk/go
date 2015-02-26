@@ -35,40 +35,71 @@
 
       <div id="meta">
 
-        <div class="score black">
-          <div class="piece"></div>
-          <div id="score_black">0</div>
+        <div class="scoring">
+          <div class="score black">
+            <div class="piece"></div>
+            <div id="score_black">0</div>
+          </div>
+
+          <div class="clearfix actions">
+            <a href="javascript:void(0);" id="pass">
+              <div class="pass">pass</div>
+            </a>
+
+            <a href="javascript:void(0);" id="undo">
+              <div class="pass">undo</div>
+            </a>
+          </div>
+
+          <div class="score white">
+            <div class="piece"></div>
+            <span id="score_white">0</span>
+          </div>
         </div>
 
-        <a href="javascript:void(0);" id="pass">
-          <div class="pass">PASS</div>
-        </a>
+        <div id="played_positions"></div>
 
-        <a href="javascript:void(0);" id="undo">
-          <div class="undo">UNDO</div>
-        </a>
-
-        <div class="score white">
-          <div class="piece"></div>
-          <span id="score_white">0</span>
-        </div>
       </div>
 
       <div id="game"></div>
 
       <script type="text/template" id="template_played_positions">
+        <% _.each(data.playedPositions,function(position, index) { %>
 
-        <% _.each(data.playedPositions,function(position) { %>
-            <div> <%- JSON.stringify(position) %> </div>
+          <div class="feed_item <%- position.type %>">
+            <div class="player <% var tmp = position.forPlayer ? 'white' : 'black'; %><%- tmp %> ">
+              <div class="index">
+                <%- index+1 %>.
+              </div>
+              <div class="piece"></div>
+            </div>
+            <div class="info">
+              <div class="time"></div>
+              <% if (position.type == 'move'){ %>
+              <div class="coords">
+                <%- position.x + ", " + position.y %>
+              </div>
+              <% } else if (position.type == 'undo') { %>
+              <div class="undid">
+                UNDO
+              </div>
+              <% } else if (position.type == 'pass') { %>
+              <div class="undid">
+                PASS
+              </div>
+              <% } %>
+            </div>
+          </div>
         <% }); %>
       </script>
 
-      <div id="played_positions"></div>
+
 
     </div>
 
     <script src="http://cdn.pubnub.com/pubnub-3.7.8.js" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.1/underscore.js" type="text/javascript"></script>
+    <script src="jquery-1.11.2.min.js"></script>
     <script src="sound.js" type="text/javascript"></script>
     <script src="go.js" type="text/javascript"></script>
   </body>

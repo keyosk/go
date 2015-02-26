@@ -41,37 +41,74 @@ h1 a {
   padding: 0px 25px;
 }
 #meta {
-  width: 150px;
+  width: 130px;
   float: left;
   margin-right: 25px;
 }
 
+.scoring{
+
+  -webkit-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
+  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
+}
+
 #played_positions{
-  float:right;
-  width:200px;
-  background: white;
-  height: 500px;
+  margin-top: 20px;
+  width: 130px;
+  background: #7B7B7B;
+  height: 200px;
+  color: white;
+  overflow: hidden;
+  overflow-y: scroll;
+  font-size: 12px;
+  -webkit-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
+  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
+}
+
+#played_positions .feed_item{
+  padding: 10px;
+  border-bottom: 1px solid #b3b3b3;
+}
+#played_positions .feed_item:last-child{
+  padding: 10px;
+  border-bottom: 0px;
+}
+
+#played_positions .feed_item .player .index{
+  float: left;
+}
+#played_positions .feed_item .player .piece{
+  width: 15px;
+  height: 15px;
+  border-radius: 10px;
+  float: left;
+  margin-right: 10px;
+  margin-left: 10px;
+}
+#played_positions .feed_item .player.black .piece{
+  background: #000;
+}
+#played_positions .feed_item .player.white .piece{
+  background: #fff;
 }
 
 .score {
-  -webkit-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
-  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
   background: #7B7B7B;
   text-align: center;
   font-size: 30px;
-  padding: 20px;
+  padding: 15px;
   color: white;
 }
 .score.Black .piece {
   background: black;
-  margin: 0px auto 20px auto;
+  margin: 0px auto 10px auto;
   width: 40px;
   height: 40px;
   border-radius: 20px;
 }
 .score.White .piece {
   background: white;
-  margin: 0px auto 20px auto;
+  margin: 0px auto 10px auto;
   width: 40px;
   height: 40px;
   border-radius: 20px;
@@ -84,17 +121,26 @@ h1 a {
 #undo {
   text-decoration: none;
 }
-.pass,
-.undo {
+
+#undo .pass{
+  border-left: 1px solid #b3b3b3;
+}
+
+.actions{
+  overflow: auto;
+  border-top: 1px solid #b3b3b3;
+  border-bottom: 1px solid #b3b3b3;
+}
+#meta .scoring .pass {
   padding: 10px 10px;
   background: #7B7B7B;
-  margin: 25px 0px;
   text-align: center;
-  -webkit-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
-  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
   font-family: 'Megrim', cursive;
-  font-size: 35px;
+  font-size: 15px;
   color: white !important;
+  width: 50%;
+  box-sizing: border-box;
+  float: left;
 }
 .container {
   max-width: 1280px;
