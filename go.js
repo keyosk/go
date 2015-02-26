@@ -418,13 +418,14 @@
 
        SELF['processPubNubPayload'] = function(m, forHistory) {
          if ('type' in m) {
+
+           if (m.type === 'move' && 'forPlayer' in m && 'pubnubUUID' in m && !SELF['movers'][m.forPlayer]) {
+             SELF['movers'][m.forPlayer] = m.pubnubUUID;
+           }
+
            if ('undid' in m) {
              SELF['cachePlayedPosition'](m);
            } else if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
-
-             if (!SELF['movers'][m.forPlayer]) {
-               SELF['movers'][m.forPlayer] = m.pubnubUUID;
-             }
 
              var result = SELF['moveStoneToXY'](parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
              if (result) {
@@ -433,6 +434,10 @@
 
            } else if (m.type === 'pass' && 'forPlayer' in m) {
              if (parseInt(SELF['currentPlayer']) === parseInt(m.forPlayer)) {
+               if (SELF['movers'][m.forPlayer] && SELF['movers'][m.forPlayer] !== m.pubnubUUID) {
+                 //Only allow a pass on your own turn
+                 return;
+               }
                SELF['cachePlayedPosition'](m);
                SELF['switchCurrentPlayer']();
              }
@@ -549,6 +554,12 @@
        });
 
        PUBNUB.bind('click', document.getElementById('pass'), function() {
+
+         if (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] !== pubnubUUID) {
+           alert('You are not allowed to pass for another player.');
+           return;
+         }
+
          if (confirm('Are you sure you want to Pass?')) {
            pubnubInstance.publish({
              'channel': pubnubDataChannel,
@@ -563,6 +574,12 @@
        });
 
        PUBNUB.bind('click', document.getElementById('undo'), function() {
+
+         if (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] === pubnubUUID) {
+           alert('You are only allowed to undo your own move.');
+           return;
+         }
+
          if (confirm('Are you sure you want to Undo?')) {
            pubnubInstance.publish({
              'channel': pubnubDataChannel,
