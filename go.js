@@ -564,17 +564,17 @@
                  var lastPosition = SELF['playedPositions'][SELF['playedPositions'].length - 1];
                  if (lastPosition.type === 'pass') {
                    var results = SELF['attemptToCalculateAndAssignScores']();
-                   if (results[0] || results[1]) {
-                     var totalPointsBlack = parseInt(SELF['whitePrisoners']) + parseInt(results[0]);
-                     var totalPointsWhite = parseInt(SELF['blackPrisoners']) + parseInt(results[1]);
-                     if (totalPointsWhite > totalPointsBlack) {
-                       alert('White Wins!');
-                     } else if (totalPointsBlack > totalPointsWhite) {
-                       alert('Black Wins!');
-                     } else {
-                       alert('Draw');
-                     }
-                   }
+                   // if (results[0] || results[1]) {
+                   //   var totalPointsBlack = parseInt(SELF['whitePrisoners']) + parseInt(results[0]);
+                   //   var totalPointsWhite = parseInt(SELF['blackPrisoners']) + parseInt(results[1]);
+                   //   if (totalPointsWhite > totalPointsBlack) {
+                   //     alert('White Wins!');
+                   //   } else if (totalPointsBlack > totalPointsWhite) {
+                   //     alert('Black Wins!');
+                   //   } else {
+                   //     alert('Draw');
+                   //   }
+                   // }
                  }
                  SELF['cachePlayedPosition'](m);
                  SELF['switchCurrentPlayer']();
