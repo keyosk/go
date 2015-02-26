@@ -1,4 +1,5 @@
-body, html {
+body,
+html {
   margin: 0px;
   padding: 0px;
   background: url(img/stardust.png);
@@ -71,10 +72,12 @@ h1 a {
   -webkit-box-shadow: 0 0 4px 0 #3B3DFF;
   box-shadow: 0 0 4px 0 #3B3DFF;
 }
-#pass, #undo {
+#pass,
+#undo {
   text-decoration: none;
 }
-.pass, .undo {
+.pass,
+.undo {
   padding: 10px 10px;
   background: #7B7B7B;
   margin: 25px 0px;
@@ -129,7 +132,8 @@ h1 a {
   width: 50px;
   height: 50px;
 }
-#game table tr td div {
+#game table tr td div,
+#game table tr td.lastPiecePlayed div:before {
   width: 40px;
   height: 40px;
   border-radius: 20px;
@@ -152,6 +156,26 @@ h1 a {
   -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
   box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
 }
+#game table tr td.lastPiecePlayed div:before {
+  content: "";
+  display: block;
+  width: 20px !important;
+  height: 20px !important;
+  top: 9px;
+  left: 9px;
+  -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+  box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+}
+#game table tr td.White.lastPiecePlayed div:before {
+  border-color: black !important;
+  background-color: white !important;
+  border: 1px solid black !important;
+}
+#game table tr td.Black.lastPiecePlayed div:before {
+  border-color: white !important;
+  background-color: black !important;
+  border: 1px solid white !important;
+}
 #game table tr td div span {
   color: transparent;
   -webkit-touch-callout: none;
@@ -169,11 +193,13 @@ h1 a {
   color: brown;
 }
 /* right, bottom > column of numbers */
+
 #game table tr td:nth-last-child(1),
 #game table tr:nth-last-child(1) td {
   border: 0px;
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr td:nth-child(1),
 #game table tr td:nth-last-child(1),
 #game table tr:nth-last-child(1) td,
@@ -181,28 +207,33 @@ h1 a {
   position: relative;
 }
 /* left > column of numbers */
+
 #game table tr td:nth-child(1):before {
   top: -13;
   left: -37px;
 }
 /* right > column of numbers */
+
 #game table tr td:nth-last-child(1):before {
   left: 25px;
   top: -13px;
 }
 /* bottom > column of numbers */
+
 #game table tr:nth-last-child(1) td:after {
   left: -5px;
   top: 18px;
 }
 /* top > column of numbers */
+
 #game table tr:nth-child(1) td:after {
   top: -45px;
   left: -5px;
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr td:nth-child(1):before,
-#game table tr td:nth-last-child(1):before, 
+#game table tr td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:after,
 #game table tr:nth-child(1) td:after {
   position: absolute;
@@ -211,6 +242,7 @@ h1 a {
   font-size: 12px;
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(1) td:nth-child(1):before,
 #game table tr:nth-child(1) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(1):after,
@@ -218,6 +250,7 @@ h1 a {
   content: "1";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(2) td:nth-child(1):before,
 #game table tr:nth-child(2) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(2):after,
@@ -225,6 +258,7 @@ h1 a {
   content: "2";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(2) td:nth-child(1):before,
 #game table tr:nth-child(2) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(2):after,
@@ -232,6 +266,7 @@ h1 a {
   content: "2";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(3) td:nth-child(1):before,
 #game table tr:nth-child(3) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(3):after,
@@ -239,6 +274,7 @@ h1 a {
   content: "3";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(4) td:nth-child(1):before,
 #game table tr:nth-child(4) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(4):after,
@@ -246,6 +282,7 @@ h1 a {
   content: "4";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(5) td:nth-child(1):before,
 #game table tr:nth-child(5) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(5):after,
@@ -253,6 +290,7 @@ h1 a {
   content: "5";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(6) td:nth-child(1):before,
 #game table tr:nth-child(6) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(6):after,
@@ -260,6 +298,7 @@ h1 a {
   content: "6";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(7) td:nth-child(1):before,
 #game table tr:nth-child(7) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(7):after,
@@ -267,6 +306,7 @@ h1 a {
   content: "7";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(8) td:nth-child(1):before,
 #game table tr:nth-child(8) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(8):after,
@@ -274,6 +314,7 @@ h1 a {
   content: "8";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(9) td:nth-child(1):before,
 #game table tr:nth-child(9) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(9):after,
@@ -281,6 +322,7 @@ h1 a {
   content: "9";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(10) td:nth-child(1):before,
 #game table tr:nth-child(10) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(10):after,
@@ -288,6 +330,7 @@ h1 a {
   content: "10";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(11) td:nth-child(1):before,
 #game table tr:nth-child(11) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(11):after,
@@ -295,6 +338,7 @@ h1 a {
   content: "11";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(12) td:nth-child(1):before,
 #game table tr:nth-child(12) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(12):after,
@@ -302,6 +346,7 @@ h1 a {
   content: "12";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(13) td:nth-child(1):before,
 #game table tr:nth-child(13) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(13):after,
@@ -309,6 +354,7 @@ h1 a {
   content: "13";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(14) td:nth-child(1):before,
 #game table tr:nth-child(14) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(14):after,
@@ -316,6 +362,7 @@ h1 a {
   content: "14";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(15) td:nth-child(1):before,
 #game table tr:nth-child(15) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(15):after,
@@ -323,6 +370,7 @@ h1 a {
   content: "15";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(16) td:nth-child(1):before,
 #game table tr:nth-child(16) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(16):after,
@@ -330,6 +378,7 @@ h1 a {
   content: "16";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(17) td:nth-child(1):before,
 #game table tr:nth-child(17) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(17):after,
@@ -337,6 +386,7 @@ h1 a {
   content: "17";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(18) td:nth-child(1):before,
 #game table tr:nth-child(18) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(18):after,
@@ -344,6 +394,7 @@ h1 a {
   content: "18";
 }
 /* left, right, bottom, top > column of numbers */
+
 #game table tr:nth-child(19) td:nth-child(1):before,
 #game table tr:nth-child(19) td:nth-last-child(1):before,
 #game table tr:nth-last-child(1) td:nth-child(19):after,

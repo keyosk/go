@@ -134,7 +134,9 @@
            SELF['scoreWhiteEle'].innerHTML = SELF['blackPrisoners'];
            SELF['scoreBlackEle'].innerHTML = SELF['whitePrisoners'];
 
-           SELF['lastPositionEle'].innerHTML = SELF['lastPosition'];
+           SELF['lastPositionEle'].innerHTML = SELF['lastPosition'].text;
+           SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className = SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className + ' lastPiecePlayed';
+
          }
 
        };
@@ -162,7 +164,11 @@
 
          var numberPrisonersTaken = Object.keys(prisonersTakenData).length;
 
-         SELF['lastPosition'] = SELF['getColorClass'](forPlayer) + ' @ ' + (parseInt(x) + 1) + ',' + (parseInt(y) + 1);
+         SELF['lastPosition'] = {
+           'text': SELF['getColorClass'](forPlayer) + ' @ ' + (parseInt(x) + 1) + ',' + (parseInt(y) + 1),
+           'x': parseInt(x),
+           'y': parseInt(y)
+         };
 
          /* logic to determine if an immediate recapture is taking place */
 
@@ -704,7 +710,7 @@
          SELF['blackPrisoners'] = 0;
          SELF['whitePrisoners'] = 0;
          SELF['currentPlayer'] = 0;
-         SELF['lastPosition'] = '';
+         SELF['lastPosition'] = {};
 
          SELF['playedPositions'] = [];
 
