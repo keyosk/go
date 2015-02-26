@@ -38,7 +38,7 @@
 
        SELF['playedPositions'] = [];
 
-       SELF['lastPrisonersTaken'] = {};
+       SELF['lastPrisonersTaken'] = [];
 
        SELF['getOppositePlayer'] = function(forPlayer) {
          return (forPlayer === 0) ? 1 : 0
@@ -123,10 +123,6 @@
            SELF['capturedBlackPiecesEle'].innerHTML = SELF['blackPrisoners'];
 
            SELF['lastPositionEle'].innerHTML = SELF['lastPosition'];
-
-           if (Object.keys(SELF['lastPrisonersTaken']).length) {
-             console.log('Position : %s | Prisoners Taken : %o', SELF['lastPosition'], SELF['lastPrisonersTaken']);
-           }
          }
 
        };
@@ -152,14 +148,95 @@
 
          var prisonersTakenData = SELF['tryToTakePrisoners'](forPlayer, x, y);
 
-         if (Object.keys(adjacentPositionsData.liberties).length === 0 && Object.keys(prisonersTakenData).length === 0) {
-           SELF['boardStruct'][x][y] = null;
-           return false;
-         }
+         var numberPrisonersTaken = Object.keys(prisonersTakenData).length;
 
          SELF['lastPosition'] = SELF['getColorClass'](forPlayer) + ' @ ' + (parseInt(x) + 1) + ',' + (parseInt(y) + 1);
 
-         SELF['lastPrisonersTaken'] = prisonersTakenData;
+         /* logic to determine if an immediate recapture is taking place */
+
+         if (numberPrisonersTaken === 1 && SELF['lastPrisonersTaken'].length) {
+
+           var potentialRecapture = SELF['lastPrisonersTaken'][SELF['lastPrisonersTaken'].length - 1];
+
+           var lastOwner = potentialRecapture.forPlayer;
+           var lastX = potentialRecapture.x;
+           var lastY = potentialRecapture.y;
+           var lastPrisoner = [];
+
+           for (var idx in potentialRecapture.prisoners) {
+             lastPrisoner.push(parseInt(idx.split(',')[0]));
+             lastPrisoner.push(parseInt(idx.split(',')[1]));
+           }
+
+           var currentOwner = forPlayer;
+           var currentX = x;
+           var currentY = y;
+           var currentPrisoner = [];
+
+           for (var idx in prisonersTakenData) {
+             currentPrisoner.push(parseInt(idx.split(',')[0]));
+             currentPrisoner.push(parseInt(idx.split(',')[1]));
+           }
+
+           var recaptureFound = false;
+
+           if (currentOwner !== lastOwner && currentPrisoner[0] === lastX && currentPrisoner[1] === lastY && lastPrisoner[0] === currentX && lastPrisoner[1] === currentY) {
+             recaptureFound = true;
+           }
+
+           if (recaptureFound) {
+
+             var immediateRecapture = false;
+
+             var idx = SELF['playedPositions'].length;
+             while (true) {
+               if (idx === 0) {
+                 break;
+               }
+               idx = idx - 1;
+               if (SELF['playedPositions'][idx].type === 'move' && !('undid' in SELF['playedPositions'][idx])) {
+                 immediateRecapture = (SELF['playedPositions'][idx].x === currentPrisoner[0] && SELF['playedPositions'][idx].y === currentPrisoner[1])
+                 break;
+               }
+             }
+
+             if (immediateRecapture) {
+               numberPrisonersTaken = 0;
+               alert('Immediate recapture is not allowed.');
+             }
+
+           }
+
+         }
+
+         if (numberPrisonersTaken) {
+
+           for (var idx in prisonersTakenData) {
+             var _x = idx.split(',')[0];
+             var _y = idx.split(',')[1];
+             SELF['boardStruct'][_x][_y] = null;
+           }
+
+           SELF['lastPrisonersTaken'].push({
+             forPlayer: forPlayer,
+             x: x,
+             y: y,
+             prisoners: prisonersTakenData
+           });
+
+           if (SELF['getOppositePlayer'](forPlayer) === 0) {
+             SELF['blackPrisoners'] = parseInt(SELF['blackPrisoners']) + numberPrisonersTaken;
+           } else {
+             SELF['whitePrisoners'] = parseInt(SELF['whitePrisoners']) + numberPrisonersTaken;
+           }
+
+         }
+         /* end logic to determine if an immediate recapture is taking place */
+
+         if (Object.keys(adjacentPositionsData.liberties).length === 0 && numberPrisonersTaken === 0) {
+           SELF['boardStruct'][x][y] = null;
+           return false;
+         }
 
          return true;
        };
@@ -306,25 +383,16 @@
 
            if (Object.keys(adjacentPositionsData.liberties).length === 0) {
 
-             SELF['boardStruct'][_x][_y] = null;
-
              prisonersList[_x + ',' + _y] = opponentPlayer;
 
              for (var _idx in adjacentPositionsData.group) {
                var __x = adjacentPositionsData.group[_idx][0];
                var __y = adjacentPositionsData.group[_idx][1];
                if (SELF['boardStruct'][__x][__y] === opponentPlayer) {
-                 SELF['boardStruct'][__x][__y] = null;
                  prisonersList[__x + ',' + __y] = opponentPlayer;
                }
              }
            }
-         }
-
-         if (opponentPlayer === 0) {
-           SELF['blackPrisoners'] = parseInt(SELF['blackPrisoners']) + Object.keys(prisonersList).length;
-         } else {
-           SELF['whitePrisoners'] = parseInt(SELF['whitePrisoners']) + Object.keys(prisonersList).length;
          }
 
          return prisonersList;
@@ -476,7 +544,7 @@
 
          SELF['playedPositions'] = [];
 
-         SELF['lastPrisonersTaken'] = {};
+         SELF['lastPrisonersTaken'] = [];
 
          SELF['movers'] = {};
 
@@ -513,7 +581,7 @@
        var hashString = 'room=' + lobbyName + '&boardSize=' + boardSize;
 
        if (historyPlayBackSpeed !== 0) {
-        hashString = hashString + '&historyPlayBackSpeed=' + historyPlayBackSpeed;
+         hashString = hashString + '&historyPlayBackSpeed=' + historyPlayBackSpeed;
        }
 
        document.location.hash = hashString;
@@ -581,7 +649,10 @@
 
        PUBNUB.bind('click', document.getElementById('undo'), function() {
 
-         if (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] === pubnubUUID) {
+         var currentPlayerIsYou = (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] === pubnubUUID);
+         var oppositePlayerIsYou = (GO.movers[GO.getOppositePlayer(GO.currentPlayer)] && GO.movers[GO.getOppositePlayer(GO.currentPlayer)] === pubnubUUID);
+
+         if (currentPlayerIsYou === true && oppositePlayerIsYou === false) {
            alert('You are only allowed to undo your own move.');
            return;
          }
