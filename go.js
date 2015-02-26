@@ -42,6 +42,8 @@
 
        SELF['lastPrisonersTaken'] = [];
 
+       SELF['playerTextAnnouncementTimeout'] = false;
+
        SELF['getOppositePlayer'] = function(forPlayer) {
          return (forPlayer === 0) ? 1 : 0
        };
@@ -433,7 +435,35 @@
 
 
        SELF['changeCurrentPlayerText'] = function() {
+
+         SELF['currentPlayerEle'].style.visibility = 'visible';
+
          SELF['currentPlayerEle'].innerHTML = SELF['getColorClass'](SELF['currentPlayer']);
+
+         if (SELF['playerTextAnnouncementTimeout']) {
+           clearTimeout(SELF['playerTextAnnouncementTimeout']);
+           SELF['playerTextAnnouncementTimeout'] = null;
+         }
+
+         if (SELF['movers'][SELF['currentPlayer']] === SELF['pubnubUUID']) {
+
+           var loop = function(element, status, time, loopCount) {
+             if (loopCount++ > 5) {
+               element.style.visibility = 'visible';
+               if (SELF['playerTextAnnouncementTimeout']) {
+                 clearTimeout(SELF['playerTextAnnouncementTimeout']);
+                 SELF['playerTextAnnouncementTimeout'] = null;
+               }
+             } else {
+               element.style.visibility = status;
+               SELF['playerTextAnnouncementTimeout'] = setTimeout(function() {
+                 loop(element, status === 'hidden' ? 'visible' : 'hidden', time, loopCount);
+               }, time);
+             }
+           };
+
+           loop(SELF['currentPlayerEle'], 'hidden', 750, 0);
+         }
        };
 
        SELF['switchCurrentPlayer'] = function() {
@@ -519,10 +549,10 @@
              if (parseInt(SELF['currentPlayer']) === parseInt(m.forPlayer)) {
                if (SELF['movers'][m.forPlayer] && SELF['movers'][m.forPlayer] !== m.pubnubUUID) {
                  //Only allow a pass on your own turn
-                 return;
+               } else {
+                 SELF['cachePlayedPosition'](m);
+                 SELF['switchCurrentPlayer']();
                }
-               SELF['cachePlayedPosition'](m);
-               SELF['switchCurrentPlayer']();
              }
            } else if (m.type === 'undo') {
              SELF['cachePlayedPosition'](m);
