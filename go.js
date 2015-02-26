@@ -46,11 +46,11 @@
          return (forPlayer === 0) ? 1 : 0
        };
 
-       window.onblur = SELF['handleOnBlur'] = function() {
+       SELF['handleOnBlur'] = function() {
          SELF['focused'] = false;
        };
 
-       window.onblur = SELF['handleOnFocus'] = function() {
+       SELF['handleOnFocus'] = function() {
          SELF['focused'] = true;
        };
 
