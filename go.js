@@ -676,8 +676,8 @@
            }
          }
 
-         SELF['scoreBlackEle'].innerHTML = SELF['whitePrisoners'] + ' +  ' + turfFor0 + ' = ' + (SELF['blackPrisoners'] + turfFor0);
-         SELF['scoreWhiteEle'].innerHTML = SELF['blackPrisoners'] + ' +  ' + turfFor1 + ' = ' + (SELF['whitePrisoners'] + turfFor1);
+         SELF['scoreBlackEle'].innerHTML = parseInt(SELF['whitePrisoners']) + ' + ' + parseInt(turfFor0) + ' = ' + (parseInt(SELF['blackPrisoners']) + parseInt(turfFor0));
+         SELF['scoreWhiteEle'].innerHTML = parseInt(SELF['blackPrisoners']) + ' + ' + parseInt(turfFor1) + ' = ' + (parseInt(SELF['whitePrisoners']) + parseInt(turfFor1));
 
        };
 
