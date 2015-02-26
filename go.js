@@ -307,8 +307,8 @@
 
            var positionOwner = SELF['boardStruct'][x][y];
 
-           if (positionOwner === null) {
-             _results['liberties'][x + ',' + y] = 1;
+           if ((forPlayer === null && positionOwner !== null) || (forPlayer !== null && positionOwner === null)) {
+             _results['liberties'][x + ',' + y] = positionOwner;
              continue;
            }
 
@@ -577,6 +577,80 @@
 
        };
 
+       SELF['attemptToCalculateAndAssignScores'] = function() {
+
+         var examinedPositions = [];
+
+         var finalEmptySpots = [];
+
+         var emptySpots = 0;
+
+         var shouldBreak = false;
+
+         for (var x in SELF['boardStruct']) {
+
+           for (var y in SELF['boardStruct'][x]) {
+
+             x = parseInt(x);
+             y = parseInt(y);
+
+             if (SELF['boardStruct'][x][y] === null) {
+
+               examinedPositions.push([x, y]);
+
+               emptySpots++;
+
+               var adjacentPositions = SELF['adjacentPositionFinder'](x, y);
+
+               findLibertyRecurseSafety = 0;
+
+               var adjacentPositionsData = SELF['findDataForAdjacentPositions'](
+                 null, [
+                   examinedPositions
+                 ],
+                 adjacentPositions
+               );
+
+               finalEmptySpots.push(adjacentPositionsData);
+             }
+
+           }
+         }
+
+         var pointsForOwner0 = 0;
+         var pointsForOwner1 = 0;
+
+         for (var idx in finalEmptySpots) {
+           var owners = [];
+
+           for (var _idx in finalEmptySpots[idx].liberties) {
+             var _x = parseInt(_idx.split(',')[0]);
+             var _y = parseInt(_idx.split(',')[1]);
+             owners.push(SELF['boardStruct'][_x][_y]);
+
+           }
+           var sameOwner = (owners.length === _.filter(owners, function(item) {
+             return item === owners[0];
+           }).length);
+
+           if (sameOwner) {
+             if (owners[0] === 0) {
+               pointsForOwner0++;
+
+             } else if (owners[0] === 1) {
+
+               pointsForOwner1++;
+             }
+           }
+         }
+
+         console.log('finalEmptySpots', finalEmptySpots);
+         console.log('pointsForOwner0', pointsForOwner0);
+         console.log('pointsForOwner1', pointsForOwner1);
+
+
+       };
+
        SELF['init'] = function() {
 
          SELF['elementsCache'] = SELF['elementsCache'] || SELF['createEmptyBoardStruct']();
@@ -674,6 +748,10 @@
            });
          }
        });
+
+
+
+       window.GO = GO;
 
        PUBNUB.bind('click', document.getElementById('pass'), function() {
 
