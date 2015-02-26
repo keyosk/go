@@ -17,6 +17,8 @@
 
        var findLibertyRecurseSafety = 0;
 
+       SELF['movers'] = {};
+
        SELF['containerEle'] = setup['containerEle'];
        SELF['lastPositionEle'] = setup['lastPositionEle'];
        SELF['currentPlayerEle'] = setup['currentPlayerEle'];
@@ -87,6 +89,12 @@
                  x = parseInt(x);
                  y = parseInt(y);
                  var forPlayer = SELF['currentPlayer'];
+
+                 if (SELF['movers'][forPlayer] && SELF['movers'][forPlayer] !== SELF['pubnubUUID']) {
+                   alert('That piece belongs to someone else.');
+                   return;
+                 }
+
                  var result = SELF['moveStoneToXY'](SELF['currentPlayer'], x, y);
                  if (result) {
                    SELF['cachePlayedPosition']({
@@ -413,10 +421,16 @@
            if ('undid' in m) {
              SELF['cachePlayedPosition'](m);
            } else if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
+
+             if (!SELF['movers'][m.forPlayer]) {
+               SELF['movers'][m.forPlayer] = m.pubnubUUID;
+             }
+
              var result = SELF['moveStoneToXY'](parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
              if (result) {
                SELF['cachePlayedPosition'](m);
              }
+
            } else if (m.type === 'pass' && 'forPlayer' in m) {
              if (parseInt(SELF['currentPlayer']) === parseInt(m.forPlayer)) {
                SELF['cachePlayedPosition'](m);
@@ -458,6 +472,8 @@
          SELF['playedPositions'] = [];
 
          SELF['lastPrisonersTaken'] = {};
+
+         SELF['movers'] = {};
 
          if (SELF['templatePlayedPositions'] === null) {
 
@@ -502,7 +518,7 @@
          'publish_key': 'pub-c-01bb4e6e-4ad8-4c62-9b72-5278a11cf9e5'
        });
 
-       var pubnubUUID = PUBNUB.uuid();
+       var pubnubUUID = PUBNUB.get_uuid();
 
        var pubnubDataChannel = 'go-game-' + VERSION + '-' + lobbyName + '-' + boardSize;
 
