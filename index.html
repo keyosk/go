@@ -52,9 +52,8 @@
 
       <script type="text/template" id="template_played_positions">
 
-        <% console.log(data.playedPositions); %>
         <% _.each(data.playedPositions,function(position) { %>
-            <div> <%- position %> </div>
+            <div> <%- position.type %> </div>
         <% }); %>
       </script>
 

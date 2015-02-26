@@ -31,6 +31,7 @@
        SELF['lobbyName'] = setup['lobbyName'];
        SELF['boardSize'] = setup['boardSize'];
 
+       SELF['pubnubUUID'] = setup['pubnubUUID'];
        SELF['clickCallback'] = setup['clickCallback'];
 
        SELF['playedPositions'] = [];
@@ -83,7 +84,16 @@
                PUBNUB.bind('click', ele.children[0], function() {
                  x = parseInt(x);
                  y = parseInt(y);
+                 var forPlayer = SELF['currentPlayer'];
                  var result = SELF['moveStoneToXY'](SELF['currentPlayer'], x, y);
+                 if (result) {
+                   SELF['cachePlayedPosition']({
+                     'type': 'move',
+                     'forPlayer': forPlayer,
+                     'x': x,
+                     'y': y
+                   });
+                 }
                  if (result && 'function' === typeof SELF['clickCallback']) {
                    SELF['clickCallback'](x, y, SELF['getOppositePlayer'](SELF['currentPlayer']));
                  }
@@ -107,7 +117,6 @@
            }
          }
 
-         SELF['playedPositionsEle'].innerHTML = SELF['templatePlayedPositions']({playedPositions: SELF['playedPositions']});
        };
 
        SELF['getPositionValid'] = function(forPlayer, x, y) {
@@ -326,8 +335,6 @@
 
          SELF['lastPosition'] = SELF['getColorClass'](forPlayer) + ' @ ' + (parseInt(x) + 1) + ',' + (parseInt(y) + 1);
 
-         SELF['cachePlayedPosition'](forPlayer, 'move', x, y);
-
          SELF['switchCurrentPlayer']();
 
          SELF['drawBoardFromStruct']();
@@ -345,12 +352,6 @@
          SELF['changeCurrentPlayerText']();
        };
 
-       SELF['pass'] = function(forPlayer) {
-        SELF['cachePlayedPosition'](forPlayer,'pass');
-        SELF['switchCurrentPlayer']();
-        SELF['playedPositionsEle'].innerHTML = SELF['templatePlayedPositions']({playedPositions: SELF['playedPositions']});
-       };
-
        SELF['getColorClass'] = function(colorState) {
          var color = '';
          if (colorState === 0) {
@@ -361,17 +362,84 @@
          return color;
        };
 
-       SELF['cachePlayedPosition'] = function(forPlayer, type, x, y) {
-        var positionCache = {
-          'type': type,
-          'forPlayer': forPlayer,
-          'time': (new Date().getTime())
-        };
-        if (type === 'move') {
-          positionCache.x = x;
-          positionCache.y = x;
-        }
-         SELF['playedPositions'].push(positionCache);
+       SELF['cachePlayedPosition'] = function(m) {
+
+         if (!('time' in m)) {
+           m['time'] = (new Date().getTime());
+         }
+
+         if (!('pubnubUUID' in m)) {
+           m['pubnubUUID'] = SELF['pubnubUUID'];
+         }
+
+         SELF['playedPositions'].push(m);
+
+         SELF['playedPositionsEle'].innerHTML = SELF['templatePlayedPositions']({
+           playedPositions: SELF['playedPositions']
+         });
+
+       };
+
+       SELF['rollBackHistoryUsingUndo'] = function(messages) {
+         for (var idx in messages) {
+           if ('type' in messages[idx] && messages[idx].type === 'undo') {
+             var undoIndex = idx;
+             while (undoIndex - 1 >= 0) {
+               undoIndex = undoIndex - 1;
+               if (undoIndex >= 0) {
+                 if ('type' in messages[undoIndex] && messages[undoIndex].type !== 'undo' && !('undid' in messages[undoIndex])) {
+                   messages[undoIndex].undid = true;
+                   break;
+                 }
+               } else {
+                 break;
+               }
+             }
+           }
+         }
+         return messages;
+       };
+
+       SELF['processPubNubPayload'] = function(m, forHistory) {
+         if ('undid' in m) {
+           SELF['cachePlayedPosition'](m);
+           return;
+         }
+         if ('type' in m) {
+           if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
+             var result = SELF['moveStoneToXY'](parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
+             if (result) {
+               SELF['cachePlayedPosition'](m);
+             }
+           } else if (m.type === 'pass' && 'forPlayer' in m) {
+             if (parseInt(SELF['currentPlayer']) === parseInt(m.forPlayer)) {
+               SELF['cachePlayedPosition'](m);
+               SELF['switchCurrentPlayer']();
+             }
+           } else if (m.type === 'undo' && forHistory === false) {
+             //Only call undo during a subscribe, if this is being processed for history, it is already filtered
+             SELF['cachePlayedPosition'](m);
+             SELF['undo'](m.forPlayer);
+           } else if (m.type === 'undo' && forHistory === true) {
+             //Only call undo during a subscribe, if this is being processed for history, it is already filtered
+             SELF['cachePlayedPosition'](m);
+
+           }
+         }
+       };
+
+       SELF['undo'] = function(forPlayer) {
+
+         var playedPositions = SELF['rollBackHistoryUsingUndo'](SELF['playedPositions']);
+
+         SELF['init']();
+
+         for (var idx in playedPositions) {
+           SELF['processPubNubPayload'](playedPositions[idx], true);
+         }
+
+         SELF['drawBoardFromStruct']();
+
        };
 
        SELF['init'] = function() {
@@ -388,7 +456,9 @@
 
          if (SELF['templatePlayedPositions'] === null) {
 
-           SELF['templatePlayedPositions'] = _.template(SELF['templatePlayedPositionsEle'].innerHTML.trim(), {'variable':'data'});
+           SELF['templatePlayedPositions'] = _.template(SELF['templatePlayedPositionsEle'].innerHTML.trim(), {
+             'variable': 'data'
+           });
          }
 
          SELF['drawBoardFromStruct']();
@@ -441,6 +511,7 @@
          'capturedBlackPiecesEle': document.getElementById('captured_black_pieces'),
          'lobbyName': lobbyName,
          'boardSize': boardSize,
+         'pubnubUUID': pubnubUUID,
          'clickCallback': function(x, y, forPlayer) {
            pubnubInstance.publish({
              'channel': pubnubDataChannel,
@@ -484,69 +555,25 @@
          }
        });
 
-       var processPubNubPayload = function(m, forHistory) {
-         if ('undid' in m) {
-           return;
-         }
-         if ('type' in m) {
-           if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
-             GO.moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
-           } else if (m.type === 'pass' && 'forPlayer' in m) {
-             if (parseInt(GO.currentPlayer) === parseInt(m.forPlayer)) {
-               GO.pass(parseInt(m.forPlayer));
-             }
-           } else if (m.type === 'undo' && forHistory === false) {
-             setTimeout(function() {
-               GO.init();
-               requestPubNubHistory();
-             }, 500);
-           }
-         }
-       };
-
-       var rollBackHistoryUsingUndo = function(messages) {
-         for (var idx in messages) {
-           if ('type' in messages[idx] && messages[idx].type === 'undo') {
-             var undoIndex = idx;
-             while (undoIndex - 1 >= 0) {
-               undoIndex = undoIndex - 1;
-               if (undoIndex >= 0) {
-                 if ('type' in messages[undoIndex] && messages[undoIndex].type !== 'undo' && !('undid' in messages[undoIndex])) {
-                   messages[undoIndex].undid = true;
-                   break;
-                 }
-               } else {
-                 break;
-               }
+       pubnubInstance.history({
+         'channel': pubnubDataChannel,
+         'callback': function(messages) {
+           if (messages[0].length) {
+             messages[0] = GO.rollBackHistoryUsingUndo(messages[0]);
+             for (var idx in messages[0]) {
+               GO.processPubNubPayload(messages[0][idx], true);
              }
            }
-         }
-         return messages;
-       };
-
-       var requestPubNubHistory = function() {
-         pubnubInstance.history({
-           'channel': pubnubDataChannel,
-           'callback': function(messages) {
-             if (messages[0].length) {
-               messages[0] = rollBackHistoryUsingUndo(messages[0]);
-               for (var idx in messages[0]) {
-                 processPubNubPayload(messages[0][idx], true);
-               }
-             }
-           },
-           'error': function() {}
-         });
-       };
+         },
+         'error': function() {}
+       });
 
        pubnubInstance.subscribe({
          'channel': pubnubDataChannel,
          'callback': function(m) {
-           processPubNubPayload(m, false);
+           GO.processPubNubPayload(m, false);
          }
        });
-
-       requestPubNubHistory();
 
      }());
 
