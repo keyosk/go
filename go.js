@@ -19,6 +19,8 @@
 
        SELF['movers'] = {};
 
+       SELF['focused'] = true;
+
        SELF['containerEle'] = setup['containerEle'];
        SELF['lastPositionEle'] = setup['lastPositionEle'];
        SELF['currentPlayerEle'] = setup['currentPlayerEle'];
@@ -42,6 +44,14 @@
 
        SELF['getOppositePlayer'] = function(forPlayer) {
          return (forPlayer === 0) ? 1 : 0
+       };
+
+       window.onblur = SELF['handleOnBlur'] = function() {
+         SELF['focused'] = false;
+       };
+
+       window.onblur = SELF['handleOnFocus'] = function() {
+         SELF['focused'] = true;
        };
 
        SELF['createEmptyBoardStruct'] = function() {
@@ -488,6 +498,10 @@
        SELF['processPubNubPayload'] = function(m, forHistory) {
          if ('type' in m) {
 
+           if (!forHistory && SELF['focused'] === false) {
+             sounds.play('chat');
+           }
+
            if (m.type === 'move' && 'forPlayer' in m && 'pubnubUUID' in m && !SELF['movers'][m.forPlayer]) {
              SELF['movers'][m.forPlayer] = m.pubnubUUID;
            }
@@ -550,6 +564,9 @@
          SELF['movers'] = {};
 
          if (SELF['templatePlayedPositions'] === null) {
+
+           window.onblur = SELF['handleOnBlur'];
+           window.onfocus = SELF['handleOnFocus'];
 
            SELF['templatePlayedPositions'] = _.template(SELF['templatePlayedPositionsEle'].innerHTML.trim(), {
              'variable': 'data'
