@@ -134,8 +134,13 @@
            SELF['scoreWhiteEle'].innerHTML = SELF['blackPrisoners'];
            SELF['scoreBlackEle'].innerHTML = SELF['whitePrisoners'];
 
-           SELF['lastPositionEle'].innerHTML = SELF['lastPosition'].text;
-           SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className = SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className + ' lastPiecePlayed';
+           if ('text' in SELF['lastPosition']) {
+             SELF['lastPositionEle'].innerHTML = SELF['lastPosition'].text;
+           }
+
+           if ('x' in SELF['lastPosition'] && 'y' in SELF['lastPosition']) {
+             SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className = SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className + ' lastPiecePlayed';
+           }
 
          }
 
