@@ -35,7 +35,6 @@ h1 a {
 }
 #nav #lobby {
   float: right;
-  padding-top: 10px;
 }
 #nav .container {
   padding: 0px 25px;
@@ -113,6 +112,17 @@ h1 a {
   -ms-user-select: none;
   user-select: none;
 }
+#game table tr td.blackTurf div {
+  background-color: rgba(0,0,0,0.4) !important;
+  -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+  box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+}
+#game table tr td.whiteTurf div {
+  background-color: rgba(255,255,255,0.4) !important;
+  -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+  box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+}
+
 #game table tr td {
   border: 2px solid brown;
   padding: 0px;

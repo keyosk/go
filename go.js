@@ -25,8 +25,8 @@
        SELF['lastPositionEle'] = setup['lastPositionEle'];
        SELF['currentPlayerEle'] = setup['currentPlayerEle'];
 
-       SELF['capturedWhitePiecesEle'] = setup['capturedWhitePiecesEle'];
-       SELF['capturedBlackPiecesEle'] = setup['capturedBlackPiecesEle'];
+       SELF['scoreWhiteEle'] = setup['scoreWhiteEle'];
+       SELF['scoreBlackEle'] = setup['scoreBlackEle'];
 
        SELF['playedPositionsEle'] = setup['playedPositionsEle'];
        SELF['templatePlayedPositionsEle'] = setup['templatePlayedPositionsEle'];
@@ -131,8 +131,8 @@
              }
            }
 
-           SELF['capturedWhitePiecesEle'].innerHTML = SELF['whitePrisoners'];
-           SELF['capturedBlackPiecesEle'].innerHTML = SELF['blackPrisoners'];
+           SELF['scoreWhiteEle'].innerHTML = SELF['blackPrisoners'];
+           SELF['scoreBlackEle'].innerHTML = SELF['whitePrisoners'];
 
            SELF['lastPositionEle'].innerHTML = SELF['lastPosition'];
          }
@@ -583,6 +583,8 @@
 
          var finalEmptySpots = [];
 
+         var finalEmptyCoords = {};
+
          var emptySpots = 0;
 
          var shouldBreak = false;
@@ -617,8 +619,8 @@
            }
          }
 
-         var pointsForOwner0 = 0;
-         var pointsForOwner1 = 0;
+         var turfFor0 = 0;
+         var turfFor1 = 0;
 
          for (var idx in finalEmptySpots) {
            var owners = [];
@@ -627,27 +629,55 @@
              var _x = parseInt(_idx.split(',')[0]);
              var _y = parseInt(_idx.split(',')[1]);
              owners.push(SELF['boardStruct'][_x][_y]);
-
            }
+
            var sameOwner = (owners.length === _.filter(owners, function(item) {
              return item === owners[0];
            }).length);
 
            if (sameOwner) {
+
+
              if (owners[0] === 0) {
-               pointsForOwner0++;
-
+               turfFor0++;
              } else if (owners[0] === 1) {
-
-               pointsForOwner1++;
+               turfFor1++;
              }
+
+             for (var _idx in finalEmptySpots[idx].group) {
+
+               //dedupe
+
+               var _x = parseInt(finalEmptySpots[idx].group[_idx][0]);
+               var _y = parseInt(finalEmptySpots[idx].group[_idx][1]);
+
+               finalEmptyCoords[_x + ',' + _y] = {
+                 forPlayer: owners[0],
+                 x: _x,
+                 y: _y
+               };
+
+             }
+
+           } else {
+            // console.error('not the same owner', owners);
+           }
+
+
+         }
+
+         for (var _idx in finalEmptyCoords) {
+           var _x = parseInt(finalEmptyCoords[_idx].x);
+           var _y = parseInt(finalEmptyCoords[_idx].y);
+           if (finalEmptyCoords[_idx].forPlayer === 0) {
+             SELF['elementsCache'][_x][_y].className = SELF['elementsCache'][_x][_y].className + ' blackTurf';
+           } else if (finalEmptyCoords[_idx].forPlayer === 1) {
+             SELF['elementsCache'][_x][_y].className = SELF['elementsCache'][_x][_y].className + ' whiteTurf';
            }
          }
 
-         console.log('finalEmptySpots', finalEmptySpots);
-         console.log('pointsForOwner0', pointsForOwner0);
-         console.log('pointsForOwner1', pointsForOwner1);
-
+         SELF['scoreBlackEle'].innerHTML = SELF['whitePrisoners'] + ' +  ' + turfFor0 + ' = ' + (SELF['blackPrisoners'] + turfFor0);
+         SELF['scoreWhiteEle'].innerHTML = SELF['blackPrisoners'] + ' +  ' + turfFor1 + ' = ' + (SELF['whitePrisoners'] + turfFor1);
 
        };
 
@@ -729,8 +759,8 @@
          'playedPositionsEle': document.getElementById('played_positions'),
          'templatePlayedPositionsEle': document.getElementById('template_played_positions'),
          'currentPlayerEle': document.getElementById('current_player'),
-         'capturedWhitePiecesEle': document.getElementById('captured_white_pieces'),
-         'capturedBlackPiecesEle': document.getElementById('captured_black_pieces'),
+         'scoreWhiteEle': document.getElementById('score_white'),
+         'scoreBlackEle': document.getElementById('score_black'),
          'lobbyName': lobbyName,
          'boardSize': boardSize,
          'pubnubUUID': pubnubUUID,
@@ -751,7 +781,7 @@
 
 
 
-       window.GO = GO;
+       window.GO_CALC = GO.attemptToCalculateAndAssignScores;
 
        PUBNUB.bind('click', document.getElementById('pass'), function() {
 

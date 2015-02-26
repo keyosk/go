@@ -20,8 +20,14 @@
             Last Position : <span id="last_position"></span>
           </div>
         </div>
-        <div id="lobby">Lobby :
-          <a id="lobby_name_link" href="javascript:void(0)" target="_blank"></a>
+        <div id="lobby">
+          <div>
+            Lobby :
+            <a id="lobby_name_link" href="javascript:void(0)" target="_blank"></a>
+          </div>
+          <div>
+            <a id="score" href="javascript:void(0);" onclick="GO_CALC();">Turf#?</a>
+          </div>
         </div>
       </div>
     </div>
@@ -29,9 +35,9 @@
 
       <div id="meta">
 
-        <div class="score black" id="black_score">
+        <div class="score black">
           <div class="piece"></div>
-          <div id="captured_white_pieces">0</div>
+          <div id="score_black">0</div>
         </div>
 
         <a href="javascript:void(0);" id="pass">
@@ -42,9 +48,9 @@
           <div class="undo">UNDO</div>
         </a>
 
-        <div class="score white" id="white_score">
+        <div class="score white">
           <div class="piece"></div>
-          <span id="captured_black_pieces">0</span>
+          <span id="score_white">0</span>
         </div>
       </div>
 
