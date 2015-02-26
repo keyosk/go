@@ -140,7 +140,7 @@
 
          var prisonersTaken = SELF['tryToTakePrisoners'](forPlayer, x, y);
 
-         if (Object.keys(adjacentPositionsData.liberties) === 0 && prisonersTaken === false) {
+         if (Object.keys(adjacentPositionsData.liberties).length === 0 && prisonersTaken === false) {
            SELF['boardStruct'][x][y] = null;
            return false;
          }
