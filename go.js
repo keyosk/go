@@ -208,7 +208,7 @@
            }
 
          }
-         
+
          /* end logic to determine if an immediate recapture is taking place */
 
          if (numberPrisonersTaken) {
@@ -308,7 +308,7 @@
              var _y = examinedPositions[_idx][1];
              if (x === _x && y === _y) {
                shouldContinue = true;
-               continue;
+               break;
              }
            }
            if (shouldContinue) {
