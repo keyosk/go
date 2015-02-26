@@ -36,6 +36,8 @@
 
        SELF['playedPositions'] = [];
 
+       SELF['lastPrisonersTaken'] = {};
+
        SELF['getOppositePlayer'] = function(forPlayer) {
          return (forPlayer === 0) ? 1 : 0
        };
@@ -93,9 +95,9 @@
                      'x': x,
                      'y': y
                    });
-                 }
-                 if (result && 'function' === typeof SELF['clickCallback']) {
-                   SELF['clickCallback'](x, y, SELF['getOppositePlayer'](SELF['currentPlayer']));
+                   if ('function' === typeof SELF['clickCallback']) {
+                     SELF['clickCallback'](x, y, SELF['getOppositePlayer'](SELF['currentPlayer']));
+                   }
                  }
                });
              });
@@ -104,16 +106,18 @@
          } else {
 
            for (var x in SELF['boardStruct']) {
-
              for (var y in SELF['boardStruct'][x]) {
-
                SELF['elementsCache'][x][y].className = SELF['getColorClass'](SELF['boardStruct'][x][y]);
-
-               SELF['capturedWhitePiecesEle'].innerHTML = SELF['whitePrisoners'];
-               SELF['capturedBlackPiecesEle'].innerHTML = SELF['blackPrisoners'];
-
-               SELF['lastPositionEle'].innerHTML = SELF['lastPosition'];
              }
+           }
+
+           SELF['capturedWhitePiecesEle'].innerHTML = SELF['whitePrisoners'];
+           SELF['capturedBlackPiecesEle'].innerHTML = SELF['blackPrisoners'];
+
+           SELF['lastPositionEle'].innerHTML = SELF['lastPosition'];
+
+           if (Object.keys(SELF['lastPrisonersTaken']).length) {
+             console.log('Position : %s | Prisoners Taken : %o', SELF['lastPosition'], SELF['lastPrisonersTaken']);
            }
          }
 
@@ -138,12 +142,16 @@
 
          SELF['boardStruct'][x][y] = forPlayer;
 
-         var prisonersTaken = SELF['tryToTakePrisoners'](forPlayer, x, y);
+         var prisonersTakenData = SELF['tryToTakePrisoners'](forPlayer, x, y);
 
-         if (Object.keys(adjacentPositionsData.liberties).length === 0 && prisonersTaken === false) {
+         if (Object.keys(adjacentPositionsData.liberties).length === 0 && Object.keys(prisonersTakenData).length === 0) {
            SELF['boardStruct'][x][y] = null;
            return false;
          }
+
+         SELF['lastPosition'] = SELF['getColorClass'](forPlayer) + ' @ ' + (parseInt(x) + 1) + ',' + (parseInt(y) + 1);
+
+         SELF['lastPrisonersTaken'] = prisonersTakenData;
 
          return true;
        };
@@ -274,8 +282,6 @@
            return SELF['boardStruct'][_x][_y] === opponentPlayer;
          });
 
-         var prisonersTaken = false;
-
          var prisonersList = {};
 
          for (var idx in adjacentPositions) {
@@ -294,16 +300,14 @@
 
              SELF['boardStruct'][_x][_y] = null;
 
-             prisonersList[_x + ',' + _y] = 1;
-
-             prisonersTaken = true;
+             prisonersList[_x + ',' + _y] = opponentPlayer;
 
              for (var _idx in adjacentPositionsData.group) {
                var __x = adjacentPositionsData.group[_idx][0];
                var __y = adjacentPositionsData.group[_idx][1];
                if (SELF['boardStruct'][__x][__y] === opponentPlayer) {
                  SELF['boardStruct'][__x][__y] = null;
-                 prisonersList[__x + ',' + __y] = 1;
+                 prisonersList[__x + ',' + __y] = opponentPlayer;
                }
              }
            }
@@ -315,7 +319,7 @@
            SELF['whitePrisoners'] = parseInt(SELF['whitePrisoners']) + Object.keys(prisonersList).length;
          }
 
-         return prisonersTaken;
+         return prisonersList;
 
        };
 
@@ -332,8 +336,6 @@
          if (positionValid === false) {
            return false;
          }
-
-         SELF['lastPosition'] = SELF['getColorClass'](forPlayer) + ' @ ' + (parseInt(x) + 1) + ',' + (parseInt(y) + 1);
 
          SELF['switchCurrentPlayer']();
 
@@ -407,12 +409,10 @@
        };
 
        SELF['processPubNubPayload'] = function(m, forHistory) {
-         if ('undid' in m) {
-           SELF['cachePlayedPosition'](m);
-           return;
-         }
          if ('type' in m) {
-           if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
+           if ('undid' in m) {
+             SELF['cachePlayedPosition'](m);
+           } else if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
              var result = SELF['moveStoneToXY'](parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
              if (result) {
                SELF['cachePlayedPosition'](m);
@@ -422,13 +422,11 @@
                SELF['cachePlayedPosition'](m);
                SELF['switchCurrentPlayer']();
              }
-           } else if (m.type === 'undo' && forHistory === false) {
-             //Only call undo during a subscribe, if this is being processed for history, it is already filtered
+           } else if (m.type === 'undo') {
              SELF['cachePlayedPosition'](m);
-             SELF['undo'](m.forPlayer);
-           } else if (m.type === 'undo' && forHistory === true) {
-             //Only call undo during a subscribe, if this is being processed for history, it is already filtered
-             SELF['cachePlayedPosition'](m);
+             if (forHistory === false) {
+               SELF['undo'](m.forPlayer);
+             }
            }
          }
        };
@@ -458,6 +456,8 @@
          SELF['lastPosition'] = '';
 
          SELF['playedPositions'] = [];
+
+         SELF['lastPrisonersTaken'] = {};
 
          if (SELF['templatePlayedPositions'] === null) {
 
@@ -560,13 +560,43 @@
          }
        });
 
-       pubnubInstance.history({
+       var get_all_history = function(args) {
+         var channel = args['channel'],
+           callback = args['callback'],
+           start = 0,
+           count = 100,
+           history = [],
+           params = {
+             channel: channel,
+             count: count,
+             reverse: false,
+             callback: function(messages) {
+               var msgs = messages[0];
+               start = messages[1];
+               params.start = start;
+               PUBNUB.each(msgs.reverse(), function(m) {
+                 history.push(m)
+               });
+               if (msgs.length < count) return callback(history.reverse());
+               count = 100;
+               add_messages();
+             }
+           };
+
+         add_messages();
+
+         function add_messages() {
+           pubnubInstance.history(params)
+         }
+       };
+
+       get_all_history({
          'channel': pubnubDataChannel,
          'callback': function(messages) {
-           if (messages[0].length) {
-             messages[0] = GO.rollBackHistoryUsingUndo(messages[0]);
-             for (var idx in messages[0]) {
-               GO.processPubNubPayload(messages[0][idx], true);
+           if (messages.length) {
+             messages = GO.rollBackHistoryUsingUndo(messages);
+             for (var idx in messages) {
+               GO.processPubNubPayload(messages[idx], true);
              }
            }
          },
