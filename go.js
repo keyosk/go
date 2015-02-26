@@ -579,8 +579,6 @@
 
        SELF['attemptToCalculateAndAssignScores'] = function() {
 
-         var examinedPositions = [];
-
          var finalEmptySpots = [];
 
          var finalEmptyCoords = {};
@@ -598,8 +596,6 @@
 
              if (SELF['boardStruct'][x][y] === null) {
 
-               examinedPositions.push([x, y]);
-
                emptySpots++;
 
                var adjacentPositions = SELF['adjacentPositionFinder'](x, y);
@@ -607,9 +603,9 @@
                findLibertyRecurseSafety = 0;
 
                var adjacentPositionsData = SELF['findDataForAdjacentPositions'](
-                 null, [
-                   examinedPositions
-                 ],
+                 null, 
+                   [[x, y]]
+                 ,
                  adjacentPositions
                );
 
@@ -623,6 +619,7 @@
          var turfFor1 = 0;
 
          for (var idx in finalEmptySpots) {
+
            var owners = [];
 
            for (var _idx in finalEmptySpots[idx].liberties) {
@@ -635,8 +632,7 @@
              return item === owners[0];
            }).length);
 
-           if (sameOwner) {
-
+           if (sameOwner && (owners[0] === 1 || owners[0] === 0)) {
 
              if (owners[0] === 0) {
                turfFor0++;
@@ -660,7 +656,7 @@
              }
 
            } else {
-            // console.error('not the same owner', owners);
+             // console.error('not the same owner', owners);
            }
 
 
