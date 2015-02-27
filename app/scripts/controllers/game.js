@@ -40,6 +40,7 @@ angular.module('gonubApp')
 
     if (needToRedirect) {
       $location.path('/game/' + lobbyName + '/' + boardSize);
+      return;
     }
 
     var VERSION = '0.0.2';

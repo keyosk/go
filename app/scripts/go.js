@@ -606,7 +606,7 @@
          if (SELF['turfIsVisible']) {
            SELF['attemptToCalculateAndAssignScores']();
          } else {
-
+           SELF['dataChangedCallback']();
          }
 
        };

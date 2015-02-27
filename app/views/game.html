@@ -109,7 +109,7 @@
 
         <table>
           <tr ng-repeat="(x, value) in boardStruct track by $index">
-            <td ng-class="{White: (forPlayer == 1), Black: (forPlayer == 0), lastPiecePlayed: (lastPosition.x == x && lastPosition.y == y), 'blackTurf': (blackTurf[(x+','+y)] == 1), 'whiteTurf': (whiteTurf[(x+','+y)] == 1) }" ng-repeat="(y, forPlayer) in value track by $index">
+            <td ng-class="{White: (forPlayer == 1), Black: (forPlayer == 0), lastPiecePlayed: (lastPosition.x == x && lastPosition.y == y), 'blackTurf': (turfIsVisible && blackTurf[(x+','+y)] == 1), 'whiteTurf': (turfIsVisible && whiteTurf[(x+','+y)] == 1) }" ng-repeat="(y, forPlayer) in value track by $index">
               <div ng-click="moveTo(x, y)" title="{{ x+1 }},{{ y+1 }}"><span>{{ x+1 }},{{ y+1 }}</span>
               </div>
             </td>
