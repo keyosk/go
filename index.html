@@ -114,7 +114,7 @@
 
           <% var dataPosition = data.playedPositions[dataIndex] %>
 
-          <div class="feed_item <%- dataPosition.type %>">
+          <div class="feed_item <%- dataPosition.type %> <% if (dataPosition.undid){ %>undone<% } %>">
             <div class="player <% var tmp = dataPosition.forPlayer ? 'white' : 'black'; %><%- tmp %> ">
               <div class="index">
                 <%- dataIndex + 1 %>.
@@ -128,11 +128,11 @@
                 <%- (dataPosition.x + 1) + ", " + (dataPosition.y + 1) %>
               </div>
               <% } else if (dataPosition.type == 'undo') { %>
-              <div class="undid">
+              <div class="undo">
                 UNDO
               </div>
               <% } else if (dataPosition.type == 'pass') { %>
-              <div class="undid">
+              <div class="pass">
                 PASS
               </div>
               <% } %>
