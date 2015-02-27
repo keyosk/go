@@ -19,7 +19,7 @@
 
        SELF['initted'] = false;
 
-       SELF['turfCounting'] = false;
+       SELF['turfIsVisible'] = false;
 
        SELF['movers'] = {};
 
@@ -79,75 +79,6 @@
 
        };
 
-       // SELF['drawBoardFromStruct'] = function() {
-
-       //   if (!SELF['initted']) {
-
-       //     var tableEle = document.createElement('table');
-
-       //     for (var x in SELF['boardStruct']) {
-
-       //       var tableRow = document.createElement('tr');
-       //       for (var y in SELF['boardStruct'][x]) {
-       //         var tableCell = document.createElement('td');
-       //         var coord_text = (parseInt(x) + 1) + ',' + (parseInt(y) + 1);
-       //         tableCell.className = SELF['getColorClass'](SELF['boardStruct'][x][y]);
-       //         tableCell.innerHTML = '<div title=' + coord_text + '><span>' + coord_text + '</span></div>';
-       //         tableRow.appendChild(tableCell);
-       //         SELF['elementsCache'][x][y] = tableCell;
-       //       }
-
-       //       tableEle.appendChild(tableRow);
-
-       //     }
-
-       //     SELF['containerEle'].appendChild(tableEle);
-
-       //     _.each(SELF['elementsCache'], function(row, x) {
-       //       _.each(row, function(ele, y) {
-       //         PUBNUB.bind('click', ele.children[0], function() {
-       //           x = parseInt(x);
-       //           y = parseInt(y);
-       //           var forPlayer = SELF['currentPlayer'];
-
-       //           if (SELF['movers'][forPlayer] && SELF['movers'][forPlayer] !== SELF['pubnubUUID']) {
-       //             alert('That piece belongs to someone else.');
-       //             return;
-       //           }
-
-       //           var result = SELF['moveStoneToXY'](SELF['currentPlayer'], x, y);
-       //           if (result) {
-       //             SELF['cachePlayedPosition']({
-       //               'type': 'move',
-       //               'forPlayer': forPlayer,
-       //               'x': x,
-       //               'y': y
-       //             });
-       //             if ('function' === typeof SELF['clickCallback']) {
-       //               SELF['clickCallback'](x, y, SELF['getOppositePlayer'](SELF['currentPlayer']));
-       //             }
-       //           }
-       //         });
-       //       });
-       //     });
-
-       //   } else {
-
-       //     for (var x in SELF['boardStruct']) {
-       //       for (var y in SELF['boardStruct'][x]) {
-       //         SELF['elementsCache'][x][y].className = SELF['getColorClass'](SELF['boardStruct'][x][y]);
-       //       }
-       //     }
-       //     if ('x' in SELF['lastPosition'] && 'y' in SELF['lastPosition']) {
-       //       SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className = SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className + ' lastPiecePlayed';
-       //     }
-
-       //     document.body.className = 'currentPlayer' + SELF['getColorClass'](SELF['currentPlayer']);
-
-       //   }
-
-       // };
-
        SELF['getPositionValid'] = function(forPlayer, x, y) {
 
          if (SELF['boardStruct'][x][y] !== -1) {
@@ -172,7 +103,6 @@
          var numberPrisonersTaken = Object.keys(prisonersTakenData).length;
 
          SELF['lastPosition'] = {
-           'text': SELF['getColorClass'](forPlayer) + ' @ ' + (parseInt(x) + 1) + ',' + (parseInt(y) + 1),
            'x': parseInt(x),
            'y': parseInt(y)
          };
@@ -441,47 +371,14 @@
 
          SELF['switchCurrentPlayer']();
 
-         // SELF['drawBoardFromStruct']();
+
 
          return true;
        };
 
-
-       SELF['changeCurrentPlayerText'] = function() {
-
-         // SELF['currentPlayerEle'].style.visibility = 'visible';
-
-         // SELF['currentPlayerEle'].innerHTML = SELF['getColorClass'](SELF['currentPlayer']);
-
-         if (SELF['playerTextAnnouncementTimeout']) {
-           clearTimeout(SELF['playerTextAnnouncementTimeout']);
-           SELF['playerTextAnnouncementTimeout'] = null;
-         }
-
-         if (SELF['movers'][SELF['currentPlayer']] === SELF['pubnubUUID']) {
-
-           // var loop = function(element, status, time, loopCount) {
-           //   if (loopCount++ > 5) {
-           //     element.style.visibility = 'visible';
-           //     if (SELF['playerTextAnnouncementTimeout']) {
-           //       clearTimeout(SELF['playerTextAnnouncementTimeout']);
-           //       SELF['playerTextAnnouncementTimeout'] = null;
-           //     }
-           //   } else {
-           //     element.style.visibility = status;
-           //     SELF['playerTextAnnouncementTimeout'] = setTimeout(function() {
-           //       loop(element, status === 'hidden' ? 'visible' : 'hidden', time, loopCount);
-           //     }, time);
-           //   }
-           // };
-
-           // loop(SELF['currentPlayerEle'], 'hidden', 750, 0);
-         }
-       };
-
        SELF['switchCurrentPlayer'] = function() {
          SELF['currentPlayer'] = SELF['getOppositePlayer'](SELF['currentPlayer']);
-         SELF['changeCurrentPlayerText']();
+
        };
 
        SELF['getColorClass'] = function(colorState) {
@@ -505,12 +402,6 @@
          }
 
          SELF['playedPositions'].push(m);
-
-         // SELF['playedPositionsEle'].innerHTML = SELF['templatePlayedPositions']({
-         //   playedPositions: SELF['playedPositions']
-         // });
-
-         SELF['drawScoresContainer']();
 
        };
 
@@ -559,7 +450,7 @@
              if (result) {
                SELF['cachePlayedPosition'](m);
              }
-             if (!forHistory && SELF['turfCounting']) {
+             if (!forHistory && SELF['turfIsVisible']) {
                SELF['attemptToCalculateAndAssignScores']();
              }
 
@@ -570,7 +461,7 @@
                } else {
                  var lastPosition = SELF['playedPositions'][SELF['playedPositions'].length - 1];
                  if (lastPosition.type === 'pass') {
-                   SELF['turfCounting'] = true;
+                   SELF['turfIsVisible'] = true;
                    var results = SELF['attemptToCalculateAndAssignScores']();
                    document.body.className = 'currentPlayer' + SELF['getColorClass'](SELF['currentPlayer']);
                  }
@@ -609,12 +500,8 @@
            SELF['processPubNubPayload'](playedPositions[idx], true);
          }
 
-         // SELF['drawBoardFromStruct']();
-
-         if (SELF['turfCounting']) {
-
+         if (SELF['turfIsVisible']) {
            SELF['attemptToCalculateAndAssignScores']();
-
          }
 
        };
@@ -644,8 +531,7 @@
 
                findLibertyRecurseSafety = 0;
 
-               var adjacentPositionsData = SELF['findDataForAdjacentPositions'](
-                 -1, [
+               var adjacentPositionsData = SELF['findDataForAdjacentPositions'](-1, [
                    [x, y]
                  ],
                  adjacentPositions
@@ -704,20 +590,23 @@
 
          }
 
+         SELF['blackTurf'] = {};
+         SELF['whiteTurf'] = {};
+
          for (var _idx in finalEmptyCoords) {
            var _x = parseInt(finalEmptyCoords[_idx].x);
            var _y = parseInt(finalEmptyCoords[_idx].y);
            if (finalEmptyCoords[_idx].forPlayer === 0) {
-             SELF['elementsCache'][_x][_y].className = SELF['elementsCache'][_x][_y].className + ' blackTurf';
+             SELF['blackTurf'][_x + ',' + _y] = 1;
            } else if (finalEmptyCoords[_idx].forPlayer === 1) {
-             SELF['elementsCache'][_x][_y].className = SELF['elementsCache'][_x][_y].className + ' whiteTurf';
+             SELF['whiteTurf'][_x + ',' + _y] = 1;
            }
          }
 
-         SELF['blackTurf'] = turfFor0;
-         SELF['whiteTurf'] = turfFor1;
+         // SELF['blackTurf'] = turfFor0;
+         // SELF['whiteTurf'] = turfFor1;
 
-         SELF['drawScoresContainer']();
+
 
          return [
            turfFor0, turfFor1
@@ -727,33 +616,18 @@
 
        SELF['toggleTurfCount'] = function() {
 
-         SELF['turfCounting'] = !SELF['turfCounting'];
+         SELF['turfIsVisible'] = !SELF['turfIsVisible'];
 
-         if (SELF['turfCounting']) {
+         if (SELF['turfIsVisible']) {
            SELF['attemptToCalculateAndAssignScores']();
          } else {
-           // SELF['drawBoardFromStruct']();
-         }
 
-         SELF['drawScoresContainer']();
+         }
 
        };
 
-       SELF['drawScoresContainer'] = function() {
-         // SELF['scoresContainerEle'].innerHTML = SELF['templateScoresContainer']({
-         //   scores: {
-         //     'blackTurf': SELF['blackTurf'],
-         //     'whiteTurf': SELF['whiteTurf'],
-         //     'blackPrisoners': SELF['blackPrisoners'],
-         //     'whitePrisoners': SELF['whitePrisoners'],
-         //   },
-         //   turfIsVisible: SELF['turfCounting']
-         // });
-       }
-
        SELF['init'] = function() {
 
-         SELF['elementsCache'] = SELF['elementsCache'] || SELF['createEmptyBoardStruct']();
          SELF['boardStruct'] = SELF['createEmptyBoardStruct']();
 
          SELF['blackPrisoners'] = 0;
@@ -769,28 +643,12 @@
 
          SELF['movers'] = {};
 
-         // if (SELF['templatePlayedPositions'] === null) {
-
          if (!SELF['initted']) {
 
            window.onblur = SELF['handleOnBlur'];
            window.onfocus = SELF['handleOnFocus'];
 
          }
-
-         // SELF['templatePlayedPositions'] = _.template(SELF['templatePlayedPositionsEle'].innerHTML.trim(), {
-         //   'variable': 'data'
-         // });
-         // SELF['templateScoresContainer'] = _.template(SELF['templateScoresContainerEle'].innerHTML.trim(), {
-         //   'variable': 'data'
-         // });
-
-         SELF['drawScoresContainer']();
-
-         // }
-
-         // SELF['drawBoardFromStruct']();
-         SELF['changeCurrentPlayerText']();
 
          SELF['initted'] = true;
 
