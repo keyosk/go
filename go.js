@@ -570,6 +570,7 @@
                  if (lastPosition.type === 'pass') {
                    SELF['turfCounting'] = true;
                    var results = SELF['attemptToCalculateAndAssignScores']();
+                   document.body.className = 'currentPlayer' + SELF['getColorClass'](SELF['currentPlayer']);
                  }
                  // if (results[0] || results[1]) {
                  //   var totalPointsBlack = parseInt(SELF['whitePrisoners']) + parseInt(results[0]);
