@@ -43,11 +43,25 @@
       <script type="text/template" id="template_scores_container">
         <div class="scoring">
           <div class="score black">
-            <div class="piece"></div>
-            <div id="score_black">
-              <%- data.scores.whitePrisoners || 0 %>
+            <div class="piece">
               <% if (data.turfIsVisible) { %>
-                (<%- data.scores.blackTurf || 0 %>)
+                <p>
+                  <%- (data.scores.whitePrisoners || 0) + (data.scores.blackTurf || 0) %>
+                </p>
+              <% } else { %>
+                <p>
+                  <%- (data.scores.whitePrisoners || 0) %>
+                </p>
+              <% } %>
+            </div>
+            <div id="score_black">
+              <% if (data.turfIsVisible) { %>
+                <p class="subscore">
+                  Prisoners: <%- data.scores.whitePrisoners || 0 %>
+                </p>
+                <p class="subscore">
+                  Turf: <%- data.scores.blackTurf || 0 %>
+                </p>
               <% } %>
             </div>
           </div>
@@ -63,11 +77,25 @@
           </div>
 
           <div class="score white">
-            <div class="piece"></div>
-            <span id="score_white">
-              <%- data.scores.blackPrisoners || 0 %>
+            <div class="piece">
               <% if (data.turfIsVisible) { %>
-                (<%- data.scores.whiteTurf || 0 %>)
+                <p>
+                  <%- (data.scores.blackPrisoners || 0) + (data.scores.whiteTurf || 0) %>
+                </p>
+              <% } else { %>
+                <p>
+                  <%- (data.scores.blackPrisoners || 0) %>
+                </p>
+              <% } %>
+            </div>
+            <span id="score_white">
+              <% if (data.turfIsVisible) { %>
+                <p class="subscore">
+                  Prisoners: <%- data.scores.blackPrisoners || 0 %>
+                </p>
+                <p class="subscore">
+                  Turf: <%- data.scores.blackTurf || 0 %>
+                </p>
               <% } %>
             </span>
           </div>
