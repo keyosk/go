@@ -22,7 +22,7 @@
        SELF['focused'] = true;
 
        SELF['containerEle'] = setup['containerEle'];
-       SELF['lastPositionEle'] = setup['lastPositionEle'];
+       // SELF['lastPositionEle'] = setup['lastPositionEle'];
        SELF['currentPlayerEle'] = setup['currentPlayerEle'];
 
        SELF['scoreWhiteEle'] = setup['scoreWhiteEle'];
@@ -134,9 +134,9 @@
            SELF['scoreWhiteEle'].innerHTML = SELF['blackPrisoners'];
            SELF['scoreBlackEle'].innerHTML = SELF['whitePrisoners'];
 
-           if ('text' in SELF['lastPosition']) {
-             SELF['lastPositionEle'].innerHTML = SELF['lastPosition'].text;
-           }
+           // if ('text' in SELF['lastPosition']) {
+           //   SELF['lastPositionEle'].innerHTML = SELF['lastPosition'].text;
+           // }
 
            if ('x' in SELF['lastPosition'] && 'y' in SELF['lastPosition']) {  
              SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className = SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className + ' lastPiecePlayed';
@@ -781,7 +781,7 @@
 
        GO = CREATE_GO({
          'containerEle': document.getElementById('game'),
-         'lastPositionEle': document.getElementById('last_position'),
+         // 'lastPositionEle': document.getElementById('last_position'),
          'playedPositionsEle': document.getElementById('played_positions'),
          'templatePlayedPositionsEle': document.getElementById('template_played_positions'),
          'currentPlayerEle': document.getElementById('current_player'),
