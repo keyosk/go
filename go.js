@@ -17,6 +17,8 @@
 
        var findLibertyRecurseSafety = 0;
 
+       SELF['turfCounting'] = false;
+
        SELF['movers'] = {};
 
        SELF['focused'] = true;
@@ -504,14 +506,7 @@
            playedPositions: SELF['playedPositions']
          });
 
-         SELF['scoresContainerEle'].innerHTML = SELF['templateScoresContainer']({
-           scores: {
-             'blackTurf': SELF['blackTurf'],
-             'whiteTurf': SELF['whiteTurf'],
-             'blackPrisoners': SELF['blackPrisoners'],
-             'whitePrisoners': SELF['whitePrisoners']
-           }
-         });
+         SELF['drawScoresContainer']();
 
        };
 
@@ -560,7 +555,7 @@
              if (result) {
                SELF['cachePlayedPosition'](m);
              }
-             if (!forHistory) {
+             if (!forHistory && SELF['turfCounting']) {
                SELF['attemptToCalculateAndAssignScores']();
              }
 
@@ -569,9 +564,11 @@
                if (SELF['movers'][m.forPlayer] && SELF['movers'][m.forPlayer] !== m.pubnubUUID) {
                  //Only allow a pass on your own turn
                } else {
-                 // var lastPosition = SELF['playedPositions'][SELF['playedPositions'].length - 1];
-                 // if (lastPosition.type === 'pass') {
-                 // var results = SELF['attemptToCalculateAndAssignScores']();
+                 var lastPosition = SELF['playedPositions'][SELF['playedPositions'].length - 1];
+                 if (lastPosition.type === 'pass') {
+                   SELF['turfCounting'] = true;
+                   var results = SELF['attemptToCalculateAndAssignScores']();
+                 }
                  // if (results[0] || results[1]) {
                  //   var totalPointsBlack = parseInt(SELF['whitePrisoners']) + parseInt(results[0]);
                  //   var totalPointsWhite = parseInt(SELF['blackPrisoners']) + parseInt(results[1]);
@@ -609,7 +606,11 @@
 
          SELF['drawBoardFromStruct']();
 
-         SELF['attemptToCalculateAndAssignScores']();
+         if (SELF['turfCounting']) {
+
+           SELF['attemptToCalculateAndAssignScores']();
+
+         }
 
        };
 
@@ -711,20 +712,39 @@
          SELF['blackTurf'] = turfFor0;
          SELF['whiteTurf'] = turfFor1;
 
-         SELF['scoresContainerEle'].innerHTML = SELF['templateScoresContainer']({
-           scores: {
-             'blackTurf': SELF['blackTurf'],
-             'whiteTurf': SELF['whiteTurf'],
-             'blackPrisoners': SELF['blackPrisoners'],
-             'whitePrisoners': SELF['whitePrisoners']
-           }
-         });
+         SELF['drawScoresContainer']();
 
          return [
            turfFor0, turfFor1
          ];
 
        };
+
+       SELF['toggleTurfCount'] = function() {
+
+         SELF['turfCounting'] = !SELF['turfCounting'];
+
+         if (SELF['turfCounting']) {
+           SELF['attemptToCalculateAndAssignScores']();
+         } else {
+           SELF['drawBoardFromStruct']();
+         }
+
+         SELF['drawScoresContainer']();
+
+       };
+
+       SELF['drawScoresContainer'] = function() {
+         SELF['scoresContainerEle'].innerHTML = SELF['templateScoresContainer']({
+           scores: {
+             'blackTurf': SELF['blackTurf'],
+             'whiteTurf': SELF['whiteTurf'],
+             'blackPrisoners': SELF['blackPrisoners'],
+             'whitePrisoners': SELF['whitePrisoners'],
+           },
+           turfIsVisible: SELF['turfCounting']
+         });
+       }
 
        SELF['init'] = function() {
 
@@ -756,14 +776,7 @@
              'variable': 'data'
            });
 
-           SELF['scoresContainerEle'].innerHTML = SELF['templateScoresContainer']({
-             scores: {
-               'blackTurf': SELF['blackTurf'],
-               'whiteTurf': SELF['whiteTurf'],
-               'blackPrisoners': SELF['blackPrisoners'],
-               'whitePrisoners': SELF['whitePrisoners']
-             }
-           });
+           SELF['drawScoresContainer']();
 
          }
 
@@ -936,8 +949,6 @@
                handleMessagesRecursively();
 
              }
-
-             GO.attemptToCalculateAndAssignScores();
 
            }
          },

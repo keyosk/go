@@ -23,7 +23,7 @@
             <a id="lobby_name_link" href="javascript:void(0)" target="_blank"></a>
           </div>
           <div>
-            <a id="score" href="javascript:void(0);" onclick="GO.attemptToCalculateAndAssignScores()">Turf#?</a>
+            <a id="score" href="javascript:void(0);" onclick="GO.toggleTurfCount()">Toggle Turf Counting</a>
           </div>
         </div>
       </div>
@@ -44,7 +44,12 @@
         <div class="scoring">
           <div class="score black">
             <div class="piece"></div>
-            <div id="score_black"><%- data.scores.whitePrisoners || 0 %> (<%- data.scores.blackTurf || 0 %>)</div>
+            <div id="score_black">
+              <%- data.scores.whitePrisoners || 0 %>
+              <% if (data.turfIsVisible) { %>
+                (<%- data.scores.blackTurf || 0 %>)
+              <% } %>
+            </div>
           </div>
 
           <div class="clearfix actions">
@@ -59,7 +64,12 @@
 
           <div class="score white">
             <div class="piece"></div>
-            <span id="score_white"><%- data.scores.blackPrisoners || 0 %> (<%- data.scores.whiteTurf || 0 %>)</span>
+            <span id="score_white">
+              <%- data.scores.blackPrisoners || 0 %>
+              <% if (data.turfIsVisible) { %>
+                (<%- data.scores.whiteTurf || 0 %>)
+              <% } %>
+            </span>
           </div>
         </div>
 
