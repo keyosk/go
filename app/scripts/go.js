@@ -17,6 +17,8 @@
 
        var findLibertyRecurseSafety = 0;
 
+       SELF['initted'] = false;
+
        SELF['turfCounting'] = false;
 
        SELF['movers'] = {};
@@ -69,7 +71,7 @@
          for (var x = 0; x < SELF['boardSize']; x++) {
            emptyBoard.push([]);
            for (var y = 0; y < SELF['boardSize']; y++) {
-             emptyBoard[x].push(null);
+             emptyBoard[x].push(-1);
            }
          }
 
@@ -77,78 +79,78 @@
 
        };
 
-       SELF['drawBoardFromStruct'] = function() {
+       // SELF['drawBoardFromStruct'] = function() {
 
-         if (SELF['containerEle'].children.length === 0) {
+       //   if (!SELF['initted']) {
 
-           var tableEle = document.createElement('table');
+       //     var tableEle = document.createElement('table');
 
-           for (var x in SELF['boardStruct']) {
+       //     for (var x in SELF['boardStruct']) {
 
-             var tableRow = document.createElement('tr');
-             for (var y in SELF['boardStruct'][x]) {
-               var tableCell = document.createElement('td');
-               var coord_text = (parseInt(x) + 1) + ',' + (parseInt(y) + 1);
-               tableCell.className = SELF['getColorClass'](SELF['boardStruct'][x][y]);
-               tableCell.innerHTML = '<div title=' + coord_text + '><span>' + coord_text + '</span></div>';
-               tableRow.appendChild(tableCell);
-               SELF['elementsCache'][x][y] = tableCell;
-             }
+       //       var tableRow = document.createElement('tr');
+       //       for (var y in SELF['boardStruct'][x]) {
+       //         var tableCell = document.createElement('td');
+       //         var coord_text = (parseInt(x) + 1) + ',' + (parseInt(y) + 1);
+       //         tableCell.className = SELF['getColorClass'](SELF['boardStruct'][x][y]);
+       //         tableCell.innerHTML = '<div title=' + coord_text + '><span>' + coord_text + '</span></div>';
+       //         tableRow.appendChild(tableCell);
+       //         SELF['elementsCache'][x][y] = tableCell;
+       //       }
 
-             tableEle.appendChild(tableRow);
+       //       tableEle.appendChild(tableRow);
 
-           }
+       //     }
 
-           SELF['containerEle'].appendChild(tableEle);
+       //     SELF['containerEle'].appendChild(tableEle);
 
-           _.each(SELF['elementsCache'], function(row, x) {
-             _.each(row, function(ele, y) {
-               PUBNUB.bind('click', ele.children[0], function() {
-                 x = parseInt(x);
-                 y = parseInt(y);
-                 var forPlayer = SELF['currentPlayer'];
+       //     _.each(SELF['elementsCache'], function(row, x) {
+       //       _.each(row, function(ele, y) {
+       //         PUBNUB.bind('click', ele.children[0], function() {
+       //           x = parseInt(x);
+       //           y = parseInt(y);
+       //           var forPlayer = SELF['currentPlayer'];
 
-                 if (SELF['movers'][forPlayer] && SELF['movers'][forPlayer] !== SELF['pubnubUUID']) {
-                   alert('That piece belongs to someone else.');
-                   return;
-                 }
+       //           if (SELF['movers'][forPlayer] && SELF['movers'][forPlayer] !== SELF['pubnubUUID']) {
+       //             alert('That piece belongs to someone else.');
+       //             return;
+       //           }
 
-                 var result = SELF['moveStoneToXY'](SELF['currentPlayer'], x, y);
-                 if (result) {
-                   SELF['cachePlayedPosition']({
-                     'type': 'move',
-                     'forPlayer': forPlayer,
-                     'x': x,
-                     'y': y
-                   });
-                   if ('function' === typeof SELF['clickCallback']) {
-                     SELF['clickCallback'](x, y, SELF['getOppositePlayer'](SELF['currentPlayer']));
-                   }
-                 }
-               });
-             });
-           });
+       //           var result = SELF['moveStoneToXY'](SELF['currentPlayer'], x, y);
+       //           if (result) {
+       //             SELF['cachePlayedPosition']({
+       //               'type': 'move',
+       //               'forPlayer': forPlayer,
+       //               'x': x,
+       //               'y': y
+       //             });
+       //             if ('function' === typeof SELF['clickCallback']) {
+       //               SELF['clickCallback'](x, y, SELF['getOppositePlayer'](SELF['currentPlayer']));
+       //             }
+       //           }
+       //         });
+       //       });
+       //     });
 
-         } else {
+       //   } else {
 
-           for (var x in SELF['boardStruct']) {
-             for (var y in SELF['boardStruct'][x]) {
-               SELF['elementsCache'][x][y].className = SELF['getColorClass'](SELF['boardStruct'][x][y]);
-             }
-           }
-           if ('x' in SELF['lastPosition'] && 'y' in SELF['lastPosition']) {
-             SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className = SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className + ' lastPiecePlayed';
-           }
+       //     for (var x in SELF['boardStruct']) {
+       //       for (var y in SELF['boardStruct'][x]) {
+       //         SELF['elementsCache'][x][y].className = SELF['getColorClass'](SELF['boardStruct'][x][y]);
+       //       }
+       //     }
+       //     if ('x' in SELF['lastPosition'] && 'y' in SELF['lastPosition']) {
+       //       SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className = SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className + ' lastPiecePlayed';
+       //     }
 
-           document.body.className = 'currentPlayer' + SELF['getColorClass'](SELF['currentPlayer']);
+       //     document.body.className = 'currentPlayer' + SELF['getColorClass'](SELF['currentPlayer']);
 
-         }
+       //   }
 
-       };
+       // };
 
        SELF['getPositionValid'] = function(forPlayer, x, y) {
 
-         if (SELF['boardStruct'][x][y] !== null) {
+         if (SELF['boardStruct'][x][y] !== -1) {
            return false;
          }
 
@@ -239,7 +241,7 @@
            for (var idx in prisonersTakenData) {
              var _x = idx.split(',')[0];
              var _y = idx.split(',')[1];
-             SELF['boardStruct'][_x][_y] = null;
+             SELF['boardStruct'][_x][_y] = -1;
            }
 
            SELF['lastPrisonersTaken'].push({
@@ -258,7 +260,7 @@
          }
 
          if (Object.keys(adjacentPositionsData.liberties).length === 0 && numberPrisonersTaken === 0) {
-           SELF['boardStruct'][x][y] = null;
+           SELF['boardStruct'][x][y] = -1;
            return false;
          }
 
@@ -318,7 +320,7 @@
 
            var positionOwner = SELF['boardStruct'][x][y];
 
-           if ((forPlayer === null && positionOwner !== null) || (forPlayer !== null && positionOwner === null)) {
+           if ((forPlayer === -1 && positionOwner !== -1) || (forPlayer !== -1 && positionOwner === -1)) {
              _results['liberties'][x + ',' + y] = positionOwner;
              continue;
            }
@@ -439,7 +441,7 @@
 
          SELF['switchCurrentPlayer']();
 
-         SELF['drawBoardFromStruct']();
+         // SELF['drawBoardFromStruct']();
 
          return true;
        };
@@ -447,9 +449,9 @@
 
        SELF['changeCurrentPlayerText'] = function() {
 
-         SELF['currentPlayerEle'].style.visibility = 'visible';
+         // SELF['currentPlayerEle'].style.visibility = 'visible';
 
-         SELF['currentPlayerEle'].innerHTML = SELF['getColorClass'](SELF['currentPlayer']);
+         // SELF['currentPlayerEle'].innerHTML = SELF['getColorClass'](SELF['currentPlayer']);
 
          if (SELF['playerTextAnnouncementTimeout']) {
            clearTimeout(SELF['playerTextAnnouncementTimeout']);
@@ -458,22 +460,22 @@
 
          if (SELF['movers'][SELF['currentPlayer']] === SELF['pubnubUUID']) {
 
-           var loop = function(element, status, time, loopCount) {
-             if (loopCount++ > 5) {
-               element.style.visibility = 'visible';
-               if (SELF['playerTextAnnouncementTimeout']) {
-                 clearTimeout(SELF['playerTextAnnouncementTimeout']);
-                 SELF['playerTextAnnouncementTimeout'] = null;
-               }
-             } else {
-               element.style.visibility = status;
-               SELF['playerTextAnnouncementTimeout'] = setTimeout(function() {
-                 loop(element, status === 'hidden' ? 'visible' : 'hidden', time, loopCount);
-               }, time);
-             }
-           };
+           // var loop = function(element, status, time, loopCount) {
+           //   if (loopCount++ > 5) {
+           //     element.style.visibility = 'visible';
+           //     if (SELF['playerTextAnnouncementTimeout']) {
+           //       clearTimeout(SELF['playerTextAnnouncementTimeout']);
+           //       SELF['playerTextAnnouncementTimeout'] = null;
+           //     }
+           //   } else {
+           //     element.style.visibility = status;
+           //     SELF['playerTextAnnouncementTimeout'] = setTimeout(function() {
+           //       loop(element, status === 'hidden' ? 'visible' : 'hidden', time, loopCount);
+           //     }, time);
+           //   }
+           // };
 
-           loop(SELF['currentPlayerEle'], 'hidden', 750, 0);
+           // loop(SELF['currentPlayerEle'], 'hidden', 750, 0);
          }
        };
 
@@ -504,9 +506,9 @@
 
          SELF['playedPositions'].push(m);
 
-         SELF['playedPositionsEle'].innerHTML = SELF['templatePlayedPositions']({
-           playedPositions: SELF['playedPositions']
-         });
+         // SELF['playedPositionsEle'].innerHTML = SELF['templatePlayedPositions']({
+         //   playedPositions: SELF['playedPositions']
+         // });
 
          SELF['drawScoresContainer']();
 
@@ -607,7 +609,7 @@
            SELF['processPubNubPayload'](playedPositions[idx], true);
          }
 
-         SELF['drawBoardFromStruct']();
+         // SELF['drawBoardFromStruct']();
 
          if (SELF['turfCounting']) {
 
@@ -634,7 +636,7 @@
              x = parseInt(x);
              y = parseInt(y);
 
-             if (SELF['boardStruct'][x][y] === null) {
+             if (SELF['boardStruct'][x][y] === -1) {
 
                emptySpots++;
 
@@ -643,7 +645,7 @@
                findLibertyRecurseSafety = 0;
 
                var adjacentPositionsData = SELF['findDataForAdjacentPositions'](
-                 null, [
+                 -1, [
                    [x, y]
                  ],
                  adjacentPositions
@@ -730,7 +732,7 @@
          if (SELF['turfCounting']) {
            SELF['attemptToCalculateAndAssignScores']();
          } else {
-           SELF['drawBoardFromStruct']();
+           // SELF['drawBoardFromStruct']();
          }
 
          SELF['drawScoresContainer']();
@@ -738,15 +740,15 @@
        };
 
        SELF['drawScoresContainer'] = function() {
-         SELF['scoresContainerEle'].innerHTML = SELF['templateScoresContainer']({
-           scores: {
-             'blackTurf': SELF['blackTurf'],
-             'whiteTurf': SELF['whiteTurf'],
-             'blackPrisoners': SELF['blackPrisoners'],
-             'whitePrisoners': SELF['whitePrisoners'],
-           },
-           turfIsVisible: SELF['turfCounting']
-         });
+         // SELF['scoresContainerEle'].innerHTML = SELF['templateScoresContainer']({
+         //   scores: {
+         //     'blackTurf': SELF['blackTurf'],
+         //     'whiteTurf': SELF['whiteTurf'],
+         //     'blackPrisoners': SELF['blackPrisoners'],
+         //     'whitePrisoners': SELF['whitePrisoners'],
+         //   },
+         //   turfIsVisible: SELF['turfCounting']
+         // });
        }
 
        SELF['init'] = function() {
@@ -767,24 +769,31 @@
 
          SELF['movers'] = {};
 
-         if (SELF['templatePlayedPositions'] === null) {
+         // if (SELF['templatePlayedPositions'] === null) {
+
+         if (!SELF['initted']) {
 
            window.onblur = SELF['handleOnBlur'];
            window.onfocus = SELF['handleOnFocus'];
 
-           SELF['templatePlayedPositions'] = _.template(SELF['templatePlayedPositionsEle'].innerHTML.trim(), {
-             'variable': 'data'
-           });
-           SELF['templateScoresContainer'] = _.template(SELF['templateScoresContainerEle'].innerHTML.trim(), {
-             'variable': 'data'
-           });
-
-           SELF['drawScoresContainer']();
-
          }
 
-         SELF['drawBoardFromStruct']();
+         // SELF['templatePlayedPositions'] = _.template(SELF['templatePlayedPositionsEle'].innerHTML.trim(), {
+         //   'variable': 'data'
+         // });
+         // SELF['templateScoresContainer'] = _.template(SELF['templateScoresContainerEle'].innerHTML.trim(), {
+         //   'variable': 'data'
+         // });
+
+         SELF['drawScoresContainer']();
+
+         // }
+
+         // SELF['drawBoardFromStruct']();
          SELF['changeCurrentPlayerText']();
+
+         SELF['initted'] = true;
+
        };
 
        SELF['init']();
@@ -792,179 +801,6 @@
        return SELF;
      };
 
-     (function init() {
-
-       var lobbyName = (document.location.hash.match(/room=([^&]+)/) || ['']).slice(-1)[0] || randomString(5);
-
-       var boardSize = parseInt((document.location.hash.match(/boardSize=([^&]+)/) || ['']).slice(-1)[0]) || 9;
-
-       var historyPlayBackSpeed = parseInt((document.location.hash.match(/historyPlayBackSpeed=([^&]+)/) || ['']).slice(-1)[0] || 0);
-
-       if (boardSize > 19) {
-         boardSize = 19;
-       } else if (boardSize < 3) {
-         boardSize = 3;
-       }
-
-       var hashString = 'room=' + lobbyName + '&boardSize=' + boardSize;
-
-       if (historyPlayBackSpeed !== 0) {
-         hashString = hashString + '&historyPlayBackSpeed=' + historyPlayBackSpeed;
-       }
-
-       document.location.hash = hashString;
-
-       var lobbyNameLink = document.getElementById('lobby_name_link');
-       lobbyNameLink.innerHTML = lobbyName;
-       lobbyNameLink.href = '#' + hashString;
-
-       var VERSION = '0.0.2';
-
-       var pubnubInstance = PUBNUB.init({
-         'subscribe_key': 'sub-c-cbcff300-bb84-11e3-b6e0-02ee2ddab7fe',
-         'publish_key': 'pub-c-01bb4e6e-4ad8-4c62-9b72-5278a11cf9e5'
-       });
-
-       var pubnubUUID = PUBNUB.get_uuid();
-
-       var pubnubDataChannel = 'go-game-' + VERSION + '-' + lobbyName + '-' + boardSize;
-
-       var GO = CREATE_GO({
-         'containerEle': document.getElementById('game'),
-         'playedPositionsEle': document.getElementById('played_positions'),
-         'templatePlayedPositionsEle': document.getElementById('template_played_positions'),
-         'templateScoresContainerEle': document.getElementById('template_scores_container'),
-         'scoresContainerEle': document.getElementById('scores_container'),
-         'currentPlayerEle': document.getElementById('current_player'),
-         'lobbyName': lobbyName,
-         'boardSize': boardSize,
-         'pubnubUUID': pubnubUUID,
-         'clickCallback': function(x, y, forPlayer) {
-           pubnubInstance.publish({
-             'channel': pubnubDataChannel,
-             'message': {
-               'type': 'move',
-               'forPlayer': forPlayer,
-               'x': x,
-               'y': y,
-               'pubnubUUID': pubnubUUID,
-               'time': (new Date().getTime())
-             }
-           });
-         },
-         'passCallback': function() {
-           if (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] !== pubnubUUID) {
-             alert('You are not allowed to pass for another player.');
-             return;
-           }
-
-           if (confirm('Are you sure you want to Pass?')) {
-             pubnubInstance.publish({
-               'channel': pubnubDataChannel,
-               'message': {
-                 'type': 'pass',
-                 'forPlayer': GO.currentPlayer,
-                 'pubnubUUID': pubnubUUID,
-                 'time': (new Date().getTime())
-               }
-             });
-           }
-         },
-         'undoCallback': function() {
-           var currentPlayerIsYou = (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] === pubnubUUID);
-           var oppositePlayerIsYou = (GO.movers[GO.getOppositePlayer(GO.currentPlayer)] && GO.movers[GO.getOppositePlayer(GO.currentPlayer)] === pubnubUUID);
-
-           if (currentPlayerIsYou === true && oppositePlayerIsYou === false) {
-             alert('You are only allowed to undo your own move.');
-             return;
-           }
-
-           if (confirm('Are you sure you want to Undo?')) {
-             pubnubInstance.publish({
-               'channel': pubnubDataChannel,
-               'message': {
-                 'type': 'undo',
-                 'forPlayer': GO.getOppositePlayer(GO.currentPlayer),
-                 'pubnubUUID': pubnubUUID,
-                 'time': (new Date().getTime())
-               }
-             });
-           }
-         }
-       });
-
-       window.GO = GO;
-
-       var get_all_history = function(args) {
-         var channel = args['channel'],
-           callback = args['callback'],
-           start = 0,
-           count = 100,
-           history = [],
-           params = {
-             channel: channel,
-             count: count,
-             reverse: false,
-             callback: function(messages) {
-               var msgs = messages[0];
-               start = messages[1];
-               params.start = start;
-               PUBNUB.each(msgs.reverse(), function(m) {
-                 history.push(m)
-               });
-               if (msgs.length < count) return callback(history.reverse());
-               count = 100;
-               add_messages();
-             }
-           };
-
-         add_messages();
-
-         function add_messages() {
-           pubnubInstance.history(params)
-         }
-       };
-
-       get_all_history({
-         'channel': pubnubDataChannel,
-         'callback': function(messages) {
-           if (messages.length) {
-
-             messages = GO.rollBackHistoryUsingUndo(messages);
-
-             if (historyPlayBackSpeed === 0) {
-
-               for (var idx in messages) {
-                 GO.processPubNubPayload(messages[idx], true);
-               }
-
-             } else {
-
-               var handleMessagesRecursively = function() {
-                 if (messages.length === 0) {
-                   return;
-                 }
-                 var message = messages.shift();
-                 GO.processPubNubPayload(message, true);
-                 setTimeout(handleMessagesRecursively, historyPlayBackSpeed);
-               };
-
-               handleMessagesRecursively();
-
-             }
-
-           }
-         },
-         'error': function() {}
-       });
-
-       pubnubInstance.subscribe({
-         'channel': pubnubDataChannel,
-         'callback': function(m) {
-           GO.processPubNubPayload(m, false);
-         }
-       });
-
-     }());
+     window.CREATE_GO = CREATE_GO;
 
    }());

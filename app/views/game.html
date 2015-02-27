@@ -1,0 +1,219 @@
+<!-- <div id="nav">
+  <div class="container">
+    <div id="logo">
+      <h1><a href="" title="gonub">gonub</a></h1>
+    </div>
+    <div id="lastPositionHolder">
+      <div>
+        Turn: <span id="current_player">Black</span>
+      </div>
+    </div>
+    <div id="lobby">
+      <div>
+        Lobby :
+        <a id="lobby_name_link" href="javascript:void(0)" target="_blank"></a>
+      </div>
+      <div>
+        <a id="score" href="javascript:void(0);" onclick="GO.toggleTurfCount()">Toggle Turf Counting</a>
+      </div>
+    </div>
+  </div>
+</div> -->
+
+<!--        // SELF['drawBoardFromStruct'] = function() {
+
+       //   if (!SELF['initted']) {
+
+       //     var tableEle = document.createElement('table');
+
+       //     for (var x in SELF['boardStruct']) {
+
+       //       var tableRow = document.createElement('tr');
+       //       for (var y in SELF['boardStruct'][x]) {
+       //         var tableCell = document.createElement('td');
+       //         var coord_text = (parseInt(x) + 1) + ',' + (parseInt(y) + 1);
+       //         tableCell.className = SELF['getColorClass'](SELF['boardStruct'][x][y]);
+       //         tableCell.innerHTML = '<div title=' + coord_text + '><span>' + coord_text + '</span></div>';
+       //         tableRow.appendChild(tableCell);
+       //         SELF['elementsCache'][x][y] = tableCell;
+       //       }
+
+       //       tableEle.appendChild(tableRow);
+
+       //     }
+
+       //     SELF['containerEle'].appendChild(tableEle);
+
+       //     _.each(SELF['elementsCache'], function(row, x) {
+       //       _.each(row, function(ele, y) {
+       //         PUBNUB.bind('click', ele.children[0], function() {
+       //           x = parseInt(x);
+       //           y = parseInt(y);
+       //           var forPlayer = SELF['currentPlayer'];
+
+       //           if (SELF['movers'][forPlayer] && SELF['movers'][forPlayer] !== SELF['pubnubUUID']) {
+       //             alert('That piece belongs to someone else.');
+       //             return;
+       //           }
+
+       //           var result = SELF['moveStoneToXY'](SELF['currentPlayer'], x, y);
+       //           if (result) {
+       //             SELF['cachePlayedPosition']({
+       //               'type': 'move',
+       //               'forPlayer': forPlayer,
+       //               'x': x,
+       //               'y': y
+       //             });
+       //             if ('function' === typeof SELF['clickCallback']) {
+       //               SELF['clickCallback'](x, y, SELF['getOppositePlayer'](SELF['currentPlayer']));
+       //             }
+       //           }
+       //         });
+       //       });
+       //     });
+
+       //   } else {
+
+       //     for (var x in SELF['boardStruct']) {
+       //       for (var y in SELF['boardStruct'][x]) {
+       //         SELF['elementsCache'][x][y].className = SELF['getColorClass'](SELF['boardStruct'][x][y]);
+       //       }
+       //     }
+       //     if ('x' in SELF['lastPosition'] && 'y' in SELF['lastPosition']) {
+       //       SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className = SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className + ' lastPiecePlayed';
+       //     }
+
+       //     document.body.className = 'currentPlayer' + SELF['getColorClass'](SELF['currentPlayer']);
+
+       //   }
+
+       // };
+ -->
+
+
+
+<div class="col-sm-12">
+
+  <div class="row">
+
+    <div class="col-sm-3">
+      <div id="meta">
+
+        <div class="scoring">
+
+          <div class="score black">
+            <div class="piece">
+              <p ng-if="gameData.turfIsVisible">
+                {{ (gameData.scores.whitePrisoners || 0) + (gameData.scores.blackTurf || 0) }}
+              </p>
+              <p ng-if="!gameData.turfIsVisible">
+                {{ (gameData.scores.whitePrisoners || 0) }}
+              </p>
+            </div>
+            <div id="score_black">
+              <p ng-if="gameData.turfIsVisible" class="subscore">
+                Prisoners: {{ gameData.scores.whitePrisoners || 0 }}
+              </p>
+              <p ng-if="gameData.turfIsVisible" class="subscore">
+                Turf: {{ gameData.scores.blackTurf || 0 }}
+              </p>
+            </div>
+          </div>
+
+          <div class="clearfix actions">
+            <a href="javascript:void(0);" id="pass" onclick="GO.passCallback();">
+              <div class="pass">pass</div>
+            </a>
+
+            <a href="javascript:void(0);" id="undo" onclick="GO.undoCallback();">
+              <div class="pass">undo</div>
+            </a>
+          </div>
+
+          <div class="score white">
+            <div class="piece">
+              <p ng-if="gameData.turfIsVisible">
+                {{ (gameData.scores.blackPrisoners || 0) + (gameData.scores.whiteTurf || 0) }}
+              </p>
+              <p ng-if="!gameData.turfIsVisible">
+                {{ (gameData.scores.blackPrisoners || 0) }}
+              </p>
+            </div>
+            <divs id="score_black">
+              <p ng-if="gameData.turfIsVisible" class="subscore">
+                Prisoners: {{ gameData.scores.blackPrisoners || 0 }}
+              </p>
+              <p ng-if="gameData.turfIsVisible" class="subscore">
+                Turf: {{ gameData.scores.whiteTurf || 0 }}
+              </p>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="played_positions"></div>
+
+    </div>
+    <div class="col-sm9">
+      <div id="game">
+
+        <table>
+          <tr ng-repeat="(x, value) in boardStruct track by $index">
+            <td ng-class="{White: forPlayer == 1, Black: forPlayer == 0}" ng-repeat="(y, forPlayer) in value track by $index">
+              <div ng-click="moveTo(x, y)" title="{{ x+1 }},{{ y+1 }}"><span>{{ x+1 }},{{ y+1 }}</span>
+              </div>
+            </td>
+          </tr>
+        </table>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+
+
+<script type="text/template" id="template_scores_container">
+
+</script>
+
+
+<script type="text/template" id="template_played_positions">
+
+  <% var dataPositionsLength=d ata.playedPositions.length; %>
+
+    <% _.each(data.playedPositions, function(position, index) { %>
+
+      <% var dataIndex=d ataPositionsLength - index - 1; %>
+
+        <% var dataPosition=d ata.playedPositions[dataIndex] %>
+
+          <div class="feed_item <%- dataPosition.type %> <% if (dataPosition.undid){ %>undone<% } %>">
+            <div class="player <% var tmp = dataPosition.forPlayer ? 'white' : 'black'; %><%- tmp %> ">
+              <div class="index">
+                <%- dataIndex + 1 %>.
+              </div>
+              <div class="piece"></div>
+            </div>
+            <div class="info">
+              <div class="time"></div>
+              <% if (dataPosition.type=='move' ){ %>
+                <div class="coords">
+                  <%- (dataPosition.x + 1) + ", " + (dataPosition.y + 1) %>
+                </div>
+                <% } else if (dataPosition.type=='undo' ) { %>
+                  <div class="undo">
+                    UNDO
+                  </div>
+                  <% } else if (dataPosition.type=='pass' ) { %>
+                    <div class="pass">
+                      PASS
+                    </div>
+                    <% } %>
+            </div>
+          </div>
+          <% }); %>
+</script>

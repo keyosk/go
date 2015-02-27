@@ -16,7 +16,6 @@ body {
 
 /* Everything but the jumbotron gets side spacing for mobile first views */
 .header,
-.marketing,
 .footer {
   padding-left: 15px;
   padding-right: 15px;
@@ -24,7 +23,6 @@ body {
 
 /* Custom page header */
 .header {
-  border-bottom: 1px solid #e5e5e5;
   margin-bottom: 10px;
 
   /* Make the masthead heading the same height as the navigation */
@@ -40,31 +38,10 @@ body {
 .footer {
   padding-top: 19px;
   color: #777;
-  border-top: 1px solid #e5e5e5;
 }
 
 .container-narrow > hr {
   margin: 30px 0;
-}
-
-/* Main marketing message and sign up button */
-.jumbotron {
-  text-align: center;
-  border-bottom: 1px solid #e5e5e5;
-
-  .btn {
-    font-size: 21px;
-    padding: 14px 24px;
-  }
-}
-
-/* Supporting marketing content */
-.marketing {
-  margin: 40px 0;
-
-  p + h4 {
-    margin-top: 28px;
-  }
 }
 
 /* Responsive: Portrait tablets and up */
@@ -75,7 +52,6 @@ body {
 
   /* Remove the padding we set earlier */
   .header,
-  .marketing,
   .footer {
     padding-left: 0;
     padding-right: 0;
@@ -84,8 +60,489 @@ body {
   .header {
     margin-bottom: 30px;
   }
-  /* Remove the bottom border on the jumbotron for visual effect */
-  .jumbotron {
-    border-bottom: 0;
-  }
+}
+
+body,
+html {
+  margin: 0px;
+  padding: 0px;
+  background: url('../images/stardust.png');
+  font-family: 'Roboto Slab', serif;
+}
+p {
+  margin: 0;
+  padding: 0;
+}
+#details {
+  float: left;
+  margin-left: 50px;
+}
+#nav {
+  height: 45px;
+  background: white;
+  width: 100%;
+  -webkit-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
+  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
+}
+h1 {
+  margin: 0px;
+}
+h2 {
+  font-family: 'Megrim', cursive;
+}
+#nav #logo {
+  font-family: 'Megrim', cursive;
+  float: left;
+  padding-right: 20px;
+}
+h1 a {
+  text-decoration: none;
+  color: black;
+}
+#nav #lastPositionHolder {
+  float: left;
+}
+#nav #lobby {
+  float: right;
+}
+#nav .container {
+  padding: 0px 25px;
+}
+#meta {
+  width: 130px;
+  margin-right: 25px;
+}
+.scoring {
+  -webkit-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
+  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
+}
+#played_positions {
+  margin-top: 20px;
+  width: 130px;
+  background: #7B7B7B;
+  height: 282px;
+  color: white;
+  overflow: hidden;
+  overflow-y: scroll;
+  font-size: 12px;
+  -webkit-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
+  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
+}
+#played_positions .feed_item {
+  padding: 10px;
+  border-bottom: 1px solid #b3b3b3;
+}
+#played_positions .feed_item:last-child {
+  padding: 10px;
+  border-bottom: 0px;
+}
+#played_positions .feed_item .player .index {
+  float: left;
+}
+#played_positions .feed_item .player .piece {
+  width: 15px;
+  height: 15px;
+  border-radius: 10px;
+  float: left;
+  margin-right: 10px;
+  margin-left: 10px;
+}
+#played_positions .feed_item .player.black .piece {
+  background: #000;
+}
+#played_positions .feed_item .player.white .piece {
+  background: #fff;
+}
+.score {
+  background: #7B7B7B;
+  text-align: center;
+  font-size: 30px;
+  padding: 15px;
+  color: white;
+}
+.score.black .piece {
+  background: black;
+  margin: 0px auto 10px auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+}
+.score.white .piece {
+  background: white;
+  margin: 0px auto 10px auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+}
+.score .piece p {
+  font-size: 22px;
+  padding-top: 6px;
+}
+.score.white .piece p {
+  color: black;
+}
+p.subscore {
+  font-size: 15px;
+}
+.highlight {
+  -webkit-box-shadow: 0 0 4px 0 #3B3DFF;
+  box-shadow: 0 0 4px 0 #3B3DFF;
+}
+#pass,
+#undo {
+  text-decoration: none;
+}
+#undo .pass {
+  border-left: 1px solid #b3b3b3;
+}
+.actions {
+  overflow: auto;
+  border-top: 1px solid #b3b3b3;
+  border-bottom: 1px solid #b3b3b3;
+}
+#meta .scoring .pass {
+  padding: 10px 10px;
+  background: #7B7B7B;
+  text-align: center;
+  font-family: 'Megrim', cursive;
+  font-size: 15px;
+  color: white !important;
+  width: 50%;
+  box-sizing: border-box;
+  float: left;
+}
+.container {
+  max-width: 1280px;
+  margin: auto;
+}
+.container.padded {
+  padding: 25px;
+  overflow: auto;
+}
+.move.undone div,
+.pass.undone div {
+  text-decoration: line-through
+}
+#game {
+  overflow: auto;
+  padding: 50px 0px 0px 50px;
+  background: url('../images/purty_wood.png');
+  float: left;
+  -webkit-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
+  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
+  border-radius: 2px;
+}
+#game table {
+  border-collapse: collapse;
+  border: 0px;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+#game table tr td.blackTurf div {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+  box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+}
+#game table tr td.whiteTurf div {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+  -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+  box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+}
+#game table tr td {
+  border: 2px solid brown;
+  padding: 0px;
+  margin: 0px;
+  width: 50px;
+  height: 50px;
+}
+#game table tr td div,
+#game table tr td.lastPiecePlayed div:before {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  position: relative;
+  top: -25px;
+  left: -21px;
+  text-align: center;
+}
+#game table tr td.Black div {
+  background-color: black !important;
+  -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+  box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+}
+#game table tr td.White div {
+  background-color: white !important;
+  -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+  box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+}
+#game table tr td.lastPiecePlayed div:before {
+  content: "";
+  display: block;
+  width: 20px !important;
+  height: 20px !important;
+  top: 9px;
+  left: 9px;
+}
+#game table tr td.White.lastPiecePlayed div:before {
+  border-color: black !important;
+  background-color: white !important;
+  border: 1px solid black !important;
+  -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+  box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+}
+#game table tr td.Black.lastPiecePlayed div:before {
+  border-color: white !important;
+  background-color: black !important;
+  border: 1px solid white !important;
+  -webkit-box-shadow: 0 0px 2px 0px rgba(255, 255, 255, .7);
+  box-shadow: 0 0px 2px 0px rgba(255, 255, 255, .7);
+}
+#game table tr td div span {
+  color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  position: relative;
+  top: 10px;
+  letter-spacing: 1px;
+  font-weight: 500;
+}
+#game table tr td.lastPiecePlayed div:hover span {
+  color: transparent !important;
+}
+body.currentPlayerWhite #game table tr td div:hover {
+  background-color: rgba(255, 255, 255, .5);
+  cursor: pointer;
+}
+body #game table tr td div:hover,
+body.currentPlayerBlack #game table tr td div:hover {
+  background-color: rgba(0, 0, 0, .5);
+  cursor: pointer;
+}
+body #game table tr td div:hover span,
+body.currentPlayerBlack #game table tr td div:hover span,
+body.currentPlayerBlack #game table tr td.Black div:hover span,
+body.currentPlayerWhite #game table tr td.Black div:hover span {
+  color: rgba(255, 255, 255, .5);
+}
+body.currentPlayerWhite #game table tr td div:hover span,
+body.currentPlayerWhite #game table tr td.White div:hover span,
+body.currentPlayerBlack #game table tr td.White div:hover span {
+  color: rgba(0, 0, 0, .5);
+}
+/* right, bottom > column of numbers */
+
+#game table tr td:nth-last-child(1),
+#game table tr:nth-last-child(1) td {
+  border: 0px;
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr td:nth-child(1),
+#game table tr td:nth-last-child(1),
+#game table tr:nth-last-child(1) td,
+#game table tr:nth-child(1) td {
+  position: relative;
+}
+/* left > column of numbers */
+
+#game table tr td:nth-child(1):before {
+  top: -13;
+  left: -37px;
+}
+/* right > column of numbers */
+
+#game table tr td:nth-last-child(1):before {
+  left: 25px;
+  top: -13px;
+}
+/* bottom > column of numbers */
+
+#game table tr:nth-last-child(1) td:after {
+  left: -5px;
+  top: 18px;
+}
+/* top > column of numbers */
+
+#game table tr:nth-child(1) td:after {
+  top: -45px;
+  left: -5px;
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr td:nth-child(1):before,
+#game table tr td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:after,
+#game table tr:nth-child(1) td:after {
+  position: absolute;
+  color: brown;
+  z-index: 10;
+  font-size: 12px;
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(1) td:nth-child(1):before,
+#game table tr:nth-child(1) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(1):after,
+#game table tr:nth-child(1) td:nth-child(1):after {
+  content: "1";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(2) td:nth-child(1):before,
+#game table tr:nth-child(2) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(2):after,
+#game table tr:nth-child(1) td:nth-child(2):after {
+  content: "2";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(2) td:nth-child(1):before,
+#game table tr:nth-child(2) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(2):after,
+#game table tr:nth-child(1) td:nth-child(2):after {
+  content: "2";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(3) td:nth-child(1):before,
+#game table tr:nth-child(3) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(3):after,
+#game table tr:nth-child(1) td:nth-child(3):after {
+  content: "3";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(4) td:nth-child(1):before,
+#game table tr:nth-child(4) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(4):after,
+#game table tr:nth-child(1) td:nth-child(4):after {
+  content: "4";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(5) td:nth-child(1):before,
+#game table tr:nth-child(5) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(5):after,
+#game table tr:nth-child(1) td:nth-child(5):after {
+  content: "5";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(6) td:nth-child(1):before,
+#game table tr:nth-child(6) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(6):after,
+#game table tr:nth-child(1) td:nth-child(6):after {
+  content: "6";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(7) td:nth-child(1):before,
+#game table tr:nth-child(7) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(7):after,
+#game table tr:nth-child(1) td:nth-child(7):after {
+  content: "7";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(8) td:nth-child(1):before,
+#game table tr:nth-child(8) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(8):after,
+#game table tr:nth-child(1) td:nth-child(8):after {
+  content: "8";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(9) td:nth-child(1):before,
+#game table tr:nth-child(9) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(9):after,
+#game table tr:nth-child(1) td:nth-child(9):after {
+  content: "9";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(10) td:nth-child(1):before,
+#game table tr:nth-child(10) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(10):after,
+#game table tr:nth-child(1) td:nth-child(10):after {
+  content: "10";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(11) td:nth-child(1):before,
+#game table tr:nth-child(11) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(11):after,
+#game table tr:nth-child(1) td:nth-child(11):after {
+  content: "11";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(12) td:nth-child(1):before,
+#game table tr:nth-child(12) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(12):after,
+#game table tr:nth-child(1) td:nth-child(12):after {
+  content: "12";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(13) td:nth-child(1):before,
+#game table tr:nth-child(13) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(13):after,
+#game table tr:nth-child(1) td:nth-child(13):after {
+  content: "13";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(14) td:nth-child(1):before,
+#game table tr:nth-child(14) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(14):after,
+#game table tr:nth-child(1) td:nth-child(14):after {
+  content: "14";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(15) td:nth-child(1):before,
+#game table tr:nth-child(15) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(15):after,
+#game table tr:nth-child(1) td:nth-child(15):after {
+  content: "15";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(16) td:nth-child(1):before,
+#game table tr:nth-child(16) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(16):after,
+#game table tr:nth-child(1) td:nth-child(16):after {
+  content: "16";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(17) td:nth-child(1):before,
+#game table tr:nth-child(17) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(17):after,
+#game table tr:nth-child(1) td:nth-child(17):after {
+  content: "17";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(18) td:nth-child(1):before,
+#game table tr:nth-child(18) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(18):after,
+#game table tr:nth-child(1) td:nth-child(18):after {
+  content: "18";
+}
+/* left, right, bottom, top > column of numbers */
+
+#game table tr:nth-child(19) td:nth-child(1):before,
+#game table tr:nth-child(19) td:nth-last-child(1):before,
+#game table tr:nth-last-child(1) td:nth-child(19):after,
+#game table tr:nth-child(1) td:nth-child(19):after {
+  content: "19";
 }
