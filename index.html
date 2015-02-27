@@ -125,7 +125,7 @@
               <div class="time"></div>
               <% if (dataPosition.type == 'move'){ %>
               <div class="coords">
-                <%- dataPosition.x + ", " + dataPosition.y %>
+                <%- (dataPosition.x + 1) + ", " + (dataPosition.y + 1) %>
               </div>
               <% } else if (dataPosition.type == 'undo') { %>
               <div class="undid">
