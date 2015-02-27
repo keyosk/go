@@ -22,18 +22,14 @@
        SELF['focused'] = true;
 
        SELF['containerEle'] = setup['containerEle'];
-       // SELF['lastPositionEle'] = setup['lastPositionEle'];
        SELF['currentPlayerEle'] = setup['currentPlayerEle'];
-
-       SELF['scoreWhiteEle'] = setup['scoreWhiteEle'];
-       SELF['scoreBlackEle'] = setup['scoreBlackEle'];
 
        SELF['playedPositionsEle'] = setup['playedPositionsEle'];
        SELF['scoresContainerEle'] = setup['scoresContainerEle'];
 
        SELF['templatePlayedPositionsEle'] = setup['templatePlayedPositionsEle'];
        SELF['templateScoresContainerEle'] = setup['templateScoresContainerEle'];
-       
+
        SELF['templateScoresContainer'] = null;
        SELF['templatePlayedPositions'] = null;
 
@@ -41,7 +37,10 @@
        SELF['boardSize'] = setup['boardSize'];
 
        SELF['pubnubUUID'] = setup['pubnubUUID'];
+
        SELF['clickCallback'] = setup['clickCallback'];
+       SELF['passCallback'] = setup['passCallback'];
+       SELF['undoCallback'] = setup['undoCallback'];
 
        SELF['playedPositions'] = [];
 
@@ -135,15 +134,7 @@
                SELF['elementsCache'][x][y].className = SELF['getColorClass'](SELF['boardStruct'][x][y]);
              }
            }
-
-           SELF['scoreWhiteEle'].innerHTML = SELF['blackPrisoners'];
-           SELF['scoreBlackEle'].innerHTML = SELF['whitePrisoners'];
-
-           // if ('text' in SELF['lastPosition']) {
-           //   SELF['lastPositionEle'].innerHTML = SELF['lastPosition'].text;
-           // }
-
-           if ('x' in SELF['lastPosition'] && 'y' in SELF['lastPosition']) {  
+           if ('x' in SELF['lastPosition'] && 'y' in SELF['lastPosition']) {
              SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className = SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className + ' lastPiecePlayed';
            }
 
@@ -515,10 +506,10 @@
 
          SELF['scoresContainerEle'].innerHTML = SELF['templateScoresContainer']({
            scores: {
-            'blackTurf': SELF['blackTurf'],
-            'whiteTurf': SELF['whiteTurf'],
-            'blackPrisoners': SELF['blackPrisoners'],
-            'whitePrisoners': SELF['whitePrisoners']
+             'blackTurf': SELF['blackTurf'],
+             'whiteTurf': SELF['whiteTurf'],
+             'blackPrisoners': SELF['blackPrisoners'],
+             'whitePrisoners': SELF['whitePrisoners']
            }
          });
 
@@ -568,6 +559,9 @@
              var result = SELF['moveStoneToXY'](parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
              if (result) {
                SELF['cachePlayedPosition'](m);
+             }
+             if (!forHistory) {
+               SELF['attemptToCalculateAndAssignScores']();
              }
 
            } else if (m.type === 'pass' && 'forPlayer' in m) {
@@ -712,18 +706,15 @@
            }
          }
 
-         SELF['scoreBlackEle'].innerHTML = parseInt(SELF['whitePrisoners']) + ' + ' + parseInt(turfFor0);
-         SELF['scoreWhiteEle'].innerHTML = parseInt(SELF['blackPrisoners']) + ' + ' + parseInt(turfFor1);
-
          SELF['blackTurf'] = turfFor0;
          SELF['whiteTurf'] = turfFor1;
 
          SELF['scoresContainerEle'].innerHTML = SELF['templateScoresContainer']({
            scores: {
-            'blackTurf': SELF['blackTurf'],
-            'whiteTurf': SELF['whiteTurf'],
-            'blackPrisoners': SELF['blackPrisoners'],
-            'whitePrisoners': SELF['whitePrisoners']
+             'blackTurf': SELF['blackTurf'],
+             'whiteTurf': SELF['whiteTurf'],
+             'blackPrisoners': SELF['blackPrisoners'],
+             'whitePrisoners': SELF['whitePrisoners']
            }
          });
 
@@ -762,6 +753,16 @@
            SELF['templateScoresContainer'] = _.template(SELF['templateScoresContainerEle'].innerHTML.trim(), {
              'variable': 'data'
            });
+
+           SELF['scoresContainerEle'].innerHTML = SELF['templateScoresContainer']({
+             scores: {
+               'blackTurf': SELF['blackTurf'],
+               'whiteTurf': SELF['whiteTurf'],
+               'blackPrisoners': SELF['blackPrisoners'],
+               'whitePrisoners': SELF['whitePrisoners']
+             }
+           });
+
          }
 
          SELF['drawBoardFromStruct']();
@@ -810,16 +811,13 @@
 
        var pubnubDataChannel = 'go-game-' + VERSION + '-' + lobbyName + '-' + boardSize;
 
-       GO = CREATE_GO({
+       var GO = CREATE_GO({
          'containerEle': document.getElementById('game'),
-         // 'lastPositionEle': document.getElementById('last_position'),
          'playedPositionsEle': document.getElementById('played_positions'),
          'templatePlayedPositionsEle': document.getElementById('template_played_positions'),
          'templateScoresContainerEle': document.getElementById('template_scores_container'),
          'scoresContainerEle': document.getElementById('scores_container'),
          'currentPlayerEle': document.getElementById('current_player'),
-         'scoreWhiteEle': document.getElementById('score_white'),
-         'scoreBlackEle': document.getElementById('score_black'),
          'lobbyName': lobbyName,
          'boardSize': boardSize,
          'pubnubUUID': pubnubUUID,
@@ -835,55 +833,49 @@
                'time': (new Date().getTime())
              }
            });
+         },
+         'passCallback': function() {
+           if (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] !== pubnubUUID) {
+             alert('You are not allowed to pass for another player.');
+             return;
+           }
+
+           if (confirm('Are you sure you want to Pass?')) {
+             pubnubInstance.publish({
+               'channel': pubnubDataChannel,
+               'message': {
+                 'type': 'pass',
+                 'forPlayer': GO.currentPlayer,
+                 'pubnubUUID': pubnubUUID,
+                 'time': (new Date().getTime())
+               }
+             });
+           }
+         },
+         'undoCallback': function() {
+           var currentPlayerIsYou = (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] === pubnubUUID);
+           var oppositePlayerIsYou = (GO.movers[GO.getOppositePlayer(GO.currentPlayer)] && GO.movers[GO.getOppositePlayer(GO.currentPlayer)] === pubnubUUID);
+
+           if (currentPlayerIsYou === true && oppositePlayerIsYou === false) {
+             alert('You are only allowed to undo your own move.');
+             return;
+           }
+
+           if (confirm('Are you sure you want to Undo?')) {
+             pubnubInstance.publish({
+               'channel': pubnubDataChannel,
+               'message': {
+                 'type': 'undo',
+                 'forPlayer': GO.getOppositePlayer(GO.currentPlayer),
+                 'pubnubUUID': pubnubUUID,
+                 'time': (new Date().getTime())
+               }
+             });
+           }
          }
        });
 
-
-
-       window.GO_CALC = GO.attemptToCalculateAndAssignScores;
-
-       PUBNUB.bind('click', document.getElementById('pass'), function() {
-
-         if (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] !== pubnubUUID) {
-           alert('You are not allowed to pass for another player.');
-           return;
-         }
-
-         if (confirm('Are you sure you want to Pass?')) {
-           pubnubInstance.publish({
-             'channel': pubnubDataChannel,
-             'message': {
-               'type': 'pass',
-               'forPlayer': GO.currentPlayer,
-               'pubnubUUID': pubnubUUID,
-               'time': (new Date().getTime())
-             }
-           });
-         }
-       });
-
-       PUBNUB.bind('click', document.getElementById('undo'), function() {
-
-         var currentPlayerIsYou = (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] === pubnubUUID);
-         var oppositePlayerIsYou = (GO.movers[GO.getOppositePlayer(GO.currentPlayer)] && GO.movers[GO.getOppositePlayer(GO.currentPlayer)] === pubnubUUID);
-
-         if (currentPlayerIsYou === true && oppositePlayerIsYou === false) {
-           alert('You are only allowed to undo your own move.');
-           return;
-         }
-
-         if (confirm('Are you sure you want to Undo?')) {
-           pubnubInstance.publish({
-             'channel': pubnubDataChannel,
-             'message': {
-               'type': 'undo',
-               'forPlayer': GO.getOppositePlayer(GO.currentPlayer),
-               'pubnubUUID': pubnubUUID,
-               'time': (new Date().getTime())
-             }
-           });
-         }
-       });
+       window.GO = GO;
 
        var get_all_history = function(args) {
          var channel = args['channel'],
@@ -942,6 +934,8 @@
                handleMessagesRecursively();
 
              }
+
+             GO.attemptToCalculateAndAssignScores();
 
            }
          },

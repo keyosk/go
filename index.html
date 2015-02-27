@@ -16,9 +16,6 @@
           <div>
             Turn: <span id="current_player">Black</span>
           </div>
-          <div>
-            <!--Last Position : <span id="last_position"></span>-->
-          </div>
         </div>
         <div id="lobby">
           <div>
@@ -26,7 +23,7 @@
             <a id="lobby_name_link" href="javascript:void(0)" target="_blank"></a>
           </div>
           <div>
-            <a id="score" href="javascript:void(0);" onclick="GO_CALC();">Turf#?</a>
+            <a id="score" href="javascript:void(0);" onclick="GO.attemptToCalculateAndAssignScores()">Turf#?</a>
           </div>
         </div>
       </div>
@@ -35,27 +32,7 @@
 
       <div id="meta">
 
-        <div class="scoring">
-          <div class="score black">
-            <div class="piece"></div>
-            <div id="score_black">0</div>
-          </div>
-
-          <div class="clearfix actions">
-            <a href="javascript:void(0);" id="pass">
-              <div class="pass">pass</div>
-            </a>
-
-            <a href="javascript:void(0);" id="undo">
-              <div class="pass">undo</div>
-            </a>
-          </div>
-
-          <div class="score white">
-            <div class="piece"></div>
-            <span id="score_white">0</span>
-          </div>
-        </div>
+        <div id="scores_container"></div>
 
         <div id="played_positions"></div>
 
@@ -63,12 +40,29 @@
 
       <div id="game"></div>
 
-      <div id="scores_container">
-
-      </div>
-
       <script type="text/template" id="template_scores_container">
-        <% console.log(data); %>
+        <div class="scoring">
+          <div class="score black">
+            <div class="piece"></div>
+            <div id="score_black"><%- data.scores.whitePrisoners || 0 %> (<%- data.scores.blackTurf || 0 %>)</div>
+          </div>
+
+          <div class="clearfix actions">
+            <a href="javascript:void(0);" id="pass" onclick="GO.passCallback();">
+              <div class="pass">pass</div>
+            </a>
+
+            <a href="javascript:void(0);" id="undo" onclick="GO.undoCallback();">
+              <div class="pass">undo</div>
+            </a>
+          </div>
+
+          <div class="score white">
+            <div class="piece"></div>
+            <span id="score_white"><%- data.scores.blackPrisoners || 0 %> (<%- data.scores.whiteTurf || 0 %>)</span>
+          </div>
+        </div>
+
       </script>
 
 
