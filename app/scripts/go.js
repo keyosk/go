@@ -25,17 +25,6 @@
 
        SELF['focused'] = true;
 
-       SELF['containerEle'] = setup['containerEle'];
-       SELF['currentPlayerEle'] = setup['currentPlayerEle'];
-
-       SELF['playedPositionsEle'] = setup['playedPositionsEle'];
-       SELF['scoresContainerEle'] = setup['scoresContainerEle'];
-
-       SELF['templatePlayedPositionsEle'] = setup['templatePlayedPositionsEle'];
-       SELF['templateScoresContainerEle'] = setup['templateScoresContainerEle'];
-
-       SELF['templateScoresContainer'] = null;
-       SELF['templatePlayedPositions'] = null;
 
        SELF['lobbyName'] = setup['lobbyName'];
        SELF['boardSize'] = setup['boardSize'];
@@ -45,12 +34,11 @@
        SELF['clickCallback'] = setup['clickCallback'];
        SELF['passCallback'] = setup['passCallback'];
        SELF['undoCallback'] = setup['undoCallback'];
+       SELF['dataChangedCallback'] = setup['dataChangedCallback'];
 
        SELF['playedPositions'] = [];
 
        SELF['lastPrisonersTaken'] = [];
-
-       SELF['playerTextAnnouncementTimeout'] = false;
 
        SELF['getOppositePlayer'] = function(forPlayer) {
          return (forPlayer === 0) ? 1 : 0
@@ -462,8 +450,7 @@
                  var lastPosition = SELF['playedPositions'][SELF['playedPositions'].length - 1];
                  if (lastPosition.type === 'pass') {
                    SELF['turfIsVisible'] = true;
-                   var results = SELF['attemptToCalculateAndAssignScores']();
-                   document.body.className = 'currentPlayer' + SELF['getColorClass'](SELF['currentPlayer']);
+                   SELF['attemptToCalculateAndAssignScores']();
                  }
                  // if (results[0] || results[1]) {
                  //   var totalPointsBlack = parseInt(SELF['whitePrisoners']) + parseInt(results[0]);
@@ -603,10 +590,8 @@
            }
          }
 
-         // SELF['blackTurf'] = turfFor0;
-         // SELF['whiteTurf'] = turfFor1;
 
-
+         SELF['dataChangedCallback']();
 
          return [
            turfFor0, turfFor1

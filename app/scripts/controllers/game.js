@@ -58,6 +58,20 @@ angular.module('gonubApp')
       'lobbyName': lobbyName,
       'boardSize': boardSize,
       'pubnubUUID': pubnubUUID,
+      'dataChangedCallback': function() {
+        $scope.boardStruct = GO['boardStruct'];
+        $scope.playedPositions = GO['playedPositions'];
+        $scope.currentPlayer = GO['currentPlayer'];
+        $scope.currentPlayerColor = GO['getColorClass'](GO['currentPlayer']);
+        $scope.lastPosition = GO['lastPosition'];
+        $scope.whiteTurf = GO['whiteTurf'];
+        $scope.blackTurf = GO['blackTurf'];
+        $scope.whiteTurfCount = Object.keys(GO['whiteTurf']).length;
+        $scope.blackTurfCount = Object.keys(GO['blackTurf']).length;
+        $scope.whitePrisoners = GO['whitePrisoners'];
+        $scope.blackPrisoners = GO['blackPrisoners'];
+        $scope.turfIsVisible = GO['turfIsVisible'];
+      },
       'clickCallback': function(x, y, forPlayer) {
         pubnubInstance.publish({
           'channel': pubnubDataChannel,
@@ -68,23 +82,6 @@ angular.module('gonubApp')
             'y': y,
             'pubnubUUID': pubnubUUID,
             'time': (new Date().getTime())
-          },
-          'callback': function() {
-
-            $scope.$apply(function() {
-
-              $scope.boardStruct = GO['boardStruct'];
-              $scope.playedPositions = GO['playedPositions'];
-              $scope.currentPlayer = GO['currentPlayer'];
-              $scope.currentPlayerColor = GO['getColorClass'](GO['currentPlayer']);
-              $scope.lastPosition = GO['lastPosition'];
-              $scope.whiteTurf = GO['whiteTurf'];
-              $scope.blackTurf = GO['blackTurf'];
-              $scope.whitePrisoners = GO['whitePrisoners'];
-              $scope.blackPrisoners = GO['blackPrisoners'];
-              $scope.turfIsVisible = GO['turfIsVisible'];
-
-            });
           }
         });
       },
@@ -101,24 +98,7 @@ angular.module('gonubApp')
               'type': 'pass',
               'forPlayer': GO.currentPlayer,
               'pubnubUUID': pubnubUUID,
-              'time': (new Date().getTime()),
-              'callback': function() {
-
-                $scope.$apply(function() {
-
-                  $scope.boardStruct = GO['boardStruct'];
-                  $scope.playedPositions = GO['playedPositions'];
-                  $scope.currentPlayer = GO['currentPlayer'];
-                  $scope.currentPlayerColor = GO['getColorClass'](GO['currentPlayer']);
-                  $scope.lastPosition = GO['lastPosition'];
-                  $scope.whiteTurf = GO['whiteTurf'];
-                  $scope.blackTurf = GO['blackTurf'];
-                  $scope.whitePrisoners = GO['whitePrisoners'];
-                  $scope.blackPrisoners = GO['blackPrisoners'];
-                  $scope.turfIsVisible = GO['turfIsVisible'];
-
-                });
-              }
+              'time': (new Date().getTime())
             }
           });
         }
@@ -139,24 +119,7 @@ angular.module('gonubApp')
               'type': 'undo',
               'forPlayer': GO.getOppositePlayer(GO.currentPlayer),
               'pubnubUUID': pubnubUUID,
-              'time': (new Date().getTime()),
-              'callback': function() {
-
-                $scope.$apply(function() {
-
-                  $scope.boardStruct = GO['boardStruct'];
-                  $scope.playedPositions = GO['playedPositions'];
-                  $scope.currentPlayer = GO['currentPlayer'];
-                  $scope.currentPlayerColor = GO['getColorClass'](GO['currentPlayer']);
-                  $scope.lastPosition = GO['lastPosition'];
-                  $scope.whiteTurf = GO['whiteTurf'];
-                  $scope.blackTurf = GO['blackTurf'];
-                  $scope.whitePrisoners = GO['whitePrisoners'];
-                  $scope.blackPrisoners = GO['blackPrisoners'];
-                  $scope.turfIsVisible = GO['turfIsVisible'];
-
-                });
-              }
+              'time': (new Date().getTime())
             }
           });
         }
@@ -235,16 +198,7 @@ angular.module('gonubApp')
 
             $scope.$apply(function() {
 
-              $scope.boardStruct = GO['boardStruct'];
-              $scope.playedPositions = GO['playedPositions'];
-              $scope.currentPlayer = GO['currentPlayer'];
-              $scope.currentPlayerColor = GO['getColorClass'](GO['currentPlayer']);
-              $scope.lastPosition = GO['lastPosition'];
-              $scope.whiteTurf = GO['whiteTurf'];
-              $scope.blackTurf = GO['blackTurf'];
-              $scope.whitePrisoners = GO['whitePrisoners'];
-              $scope.blackPrisoners = GO['blackPrisoners'];
-              $scope.turfIsVisible = GO['turfIsVisible'];
+              GO.dataChangedCallback();
 
             });
 
@@ -259,16 +213,7 @@ angular.module('gonubApp')
 
               $scope.$apply(function() {
 
-                $scope.boardStruct = GO['boardStruct'];
-                $scope.playedPositions = GO['playedPositions'];
-                $scope.currentPlayer = GO['currentPlayer'];
-                $scope.currentPlayerColor = GO['getColorClass'](GO['currentPlayer']);
-                $scope.lastPosition = GO['lastPosition'];
-                $scope.whiteTurf = GO['whiteTurf'];
-                $scope.blackTurf = GO['blackTurf'];
-                $scope.whitePrisoners = GO['whitePrisoners'];
-                $scope.blackPrisoners = GO['blackPrisoners'];
-                $scope.turfIsVisible = GO['turfIsVisible'];
+                GO.dataChangedCallback();
 
               });
 
@@ -291,16 +236,7 @@ angular.module('gonubApp')
         GO.processPubNubPayload(m, false);
         $scope.$apply(function() {
 
-          $scope.boardStruct = GO['boardStruct'];
-          $scope.playedPositions = GO['playedPositions'];
-          $scope.currentPlayer = GO['currentPlayer'];
-          $scope.currentPlayerColor = GO['getColorClass'](GO['currentPlayer']);
-          $scope.lastPosition = GO['lastPosition'];
-          $scope.whiteTurf = GO['whiteTurf'];
-          $scope.blackTurf = GO['blackTurf'];
-          $scope.whitePrisoners = GO['whitePrisoners'];
-          $scope.blackPrisoners = GO['blackPrisoners'];
-          $scope.turfIsVisible = GO['turfIsVisible'];
+          GO.dataChangedCallback();
 
         });
       }
@@ -314,28 +250,8 @@ angular.module('gonubApp')
 
     $scope.toggleTurfCount = function() {
 
-      console.log('turfo count!');
+      GO['toggleTurfCount']();
 
-      // $scope.$apply(function() {
-        GO['toggleTurfCount']();
-      // });
-
-
-        // $scope.$apply(function() {
-
-          $scope.boardStruct = GO['boardStruct'];
-          $scope.playedPositions = GO['playedPositions'];
-          $scope.currentPlayer = GO['currentPlayer'];
-          $scope.currentPlayerColor = GO['getColorClass'](GO['currentPlayer']);
-          $scope.lastPosition = GO['lastPosition'];
-          $scope.whiteTurf = GO['whiteTurf'];
-          $scope.blackTurf = GO['blackTurf'];
-          $scope.whitePrisoners = GO['whitePrisoners'];
-          $scope.blackPrisoners = GO['blackPrisoners'];
-          $scope.turfIsVisible = GO['turfIsVisible'];
-
-        // });
-
-    }
+    };
 
   });

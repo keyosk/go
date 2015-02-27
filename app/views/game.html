@@ -32,7 +32,7 @@
           <div class="score black">
             <div class="piece">
               <p ng-if="turfIsVisible">
-                {{ (whitePrisoners || 0) + (Object.keys(blackTurf).length || 0) }}
+                {{ (whitePrisoners || 0) + (blackTurfCount || 0) }}
               </p>
               <p ng-if="!turfIsVisible">
                 {{ (whitePrisoners || 0) }}
@@ -43,7 +43,7 @@
                 Prisoners: {{ whitePrisoners || 0 }}
               </p>
               <p ng-if="turfIsVisible" class="subscore">
-                Turf: {{ Object.keys(blackTurf).length || 0 }}
+                Turf: {{ blackTurfCount || 0 }}
               </p>
             </div>
           </div>
@@ -61,7 +61,7 @@
           <div class="score white">
             <div class="piece">
               <p ng-if="turfIsVisible">
-                {{ (blackPrisoners || 0) + (Object.keys(whiteTurf).length || 0) }}
+                {{ (blackPrisoners || 0) + (whiteTurfCount || 0) }}
               </p>
               <p ng-if="!turfIsVisible">
                 {{ (blackPrisoners || 0) }}
@@ -72,7 +72,7 @@
                 Prisoners: {{ blackPrisoners || 0 }}
               </p>
               <p ng-if="turfIsVisible" class="subscore">
-                Turf: {{ Object.keys(whiteTurf).length || 0 }}
+                Turf: {{ whiteTurfCount || 0 }}
               </p>
           </div>
         </div>
