@@ -20,7 +20,10 @@
 </div> -->
 
 <div class="col-sm-12 currentPlayer{{currentPlayerColor}}">
-        <a id="score" href="javascript:void(0);" ng-click="toggleTurfCount()">Toggle Turf Counting</a>
+
+  <div class="row">
+    <a href="" ng-click="toggleTurfCount()">{{ turfIsVisible ? 'Disable' : 'Enable' }} Turf Counting</a>
+  </div>
 
   <div class="row">
 
