@@ -49,14 +49,11 @@ h1 a {
   float: left;
   margin-right: 25px;
 }
-
-.scoring{
-
+.scoring {
   -webkit-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
   box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
 }
-
-#played_positions{
+#played_positions {
   margin-top: 20px;
   width: 130px;
   background: #7B7B7B;
@@ -68,20 +65,18 @@ h1 a {
   -webkit-box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
   box-shadow: 0 0 4px 0 rgba(0, 0, 0, 1);
 }
-
-#played_positions .feed_item{
+#played_positions .feed_item {
   padding: 10px;
   border-bottom: 1px solid #b3b3b3;
 }
-#played_positions .feed_item:last-child{
+#played_positions .feed_item:last-child {
   padding: 10px;
   border-bottom: 0px;
 }
-
-#played_positions .feed_item .player .index{
+#played_positions .feed_item .player .index {
   float: left;
 }
-#played_positions .feed_item .player .piece{
+#played_positions .feed_item .player .piece {
   width: 15px;
   height: 15px;
   border-radius: 10px;
@@ -89,13 +84,12 @@ h1 a {
   margin-right: 10px;
   margin-left: 10px;
 }
-#played_positions .feed_item .player.black .piece{
+#played_positions .feed_item .player.black .piece {
   background: #000;
 }
-#played_positions .feed_item .player.white .piece{
+#played_positions .feed_item .player.white .piece {
   background: #fff;
 }
-
 .score {
   background: #7B7B7B;
   text-align: center;
@@ -117,17 +111,16 @@ h1 a {
   height: 40px;
   border-radius: 20px;
 }
-
-
-.score.white .piece p {
-  color: black;
+.score .piece p {
   font-size: 22px;
   padding-top: 6px;
 }
-p.subscore {
-  font-size:15px;
+.score.white .piece p {
+  color: black;
 }
-
+p.subscore {
+  font-size: 15px;
+}
 .highlight {
   -webkit-box-shadow: 0 0 4px 0 #3B3DFF;
   box-shadow: 0 0 4px 0 #3B3DFF;
@@ -136,12 +129,10 @@ p.subscore {
 #undo {
   text-decoration: none;
 }
-
-#undo .pass{
+#undo .pass {
   border-left: 1px solid #b3b3b3;
 }
-
-.actions{
+.actions {
   overflow: auto;
   border-top: 1px solid #b3b3b3;
   border-bottom: 1px solid #b3b3b3;
