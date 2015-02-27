@@ -140,6 +140,8 @@
              SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className = SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className + ' lastPiecePlayed';
            }
 
+           document.body.className = 'currentPlayer' + SELF['getColorClass'](SELF['currentPlayer']);
+
          }
 
        };
