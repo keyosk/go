@@ -64,26 +64,33 @@
       <div id="game"></div>
 
       <script type="text/template" id="template_played_positions">
-        <% _.each(data.playedPositions,function(position, index) { %>
 
-          <div class="feed_item <%- position.type %>">
-            <div class="player <% var tmp = position.forPlayer ? 'white' : 'black'; %><%- tmp %> ">
+        <% var dataPositionsLength = data.playedPositions.length; %>
+
+        <% _.each(data.playedPositions, function(position, index) { %>
+
+          <% var dataIndex = dataPositionsLength - index - 1; %>
+
+          <% var dataPosition = data.playedPositions[dataIndex] %>
+
+          <div class="feed_item <%- dataPosition.type %>">
+            <div class="player <% var tmp = dataPosition.forPlayer ? 'white' : 'black'; %><%- tmp %> ">
               <div class="index">
-                <%- index+1 %>.
+                <%- dataIndex + 1 %>.
               </div>
               <div class="piece"></div>
             </div>
             <div class="info">
               <div class="time"></div>
-              <% if (position.type == 'move'){ %>
+              <% if (dataPosition.type == 'move'){ %>
               <div class="coords">
-                <%- position.x + ", " + position.y %>
+                <%- dataPosition.x + ", " + dataPosition.y %>
               </div>
-              <% } else if (position.type == 'undo') { %>
+              <% } else if (dataPosition.type == 'undo') { %>
               <div class="undid">
                 UNDO
               </div>
-              <% } else if (position.type == 'pass') { %>
+              <% } else if (dataPosition.type == 'pass') { %>
               <div class="undid">
                 PASS
               </div>
