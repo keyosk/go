@@ -29,7 +29,12 @@
        SELF['scoreBlackEle'] = setup['scoreBlackEle'];
 
        SELF['playedPositionsEle'] = setup['playedPositionsEle'];
+       SELF['scoresContainerEle'] = setup['scoresContainerEle'];
+
        SELF['templatePlayedPositionsEle'] = setup['templatePlayedPositionsEle'];
+       SELF['templateScoresContainerEle'] = setup['templateScoresContainerEle'];
+       
+       SELF['templateScoresContainer'] = null;
        SELF['templatePlayedPositions'] = null;
 
        SELF['lobbyName'] = setup['lobbyName'];
@@ -508,6 +513,15 @@
            playedPositions: SELF['playedPositions']
          });
 
+         SELF['scoresContainerEle'].innerHTML = SELF['templateScoresContainer']({
+           scores: {
+            'blackTurf': SELF['blackTurf'],
+            'whiteTurf': SELF['whiteTurf'],
+            'blackPrisoners': SELF['blackPrisoners'],
+            'whitePrisoners': SELF['whitePrisoners']
+           }
+         });
+
        };
 
        SELF['rollBackHistoryUsingUndo'] = function(messages) {
@@ -701,6 +715,18 @@
          SELF['scoreBlackEle'].innerHTML = parseInt(SELF['whitePrisoners']) + ' + ' + parseInt(turfFor0);
          SELF['scoreWhiteEle'].innerHTML = parseInt(SELF['blackPrisoners']) + ' + ' + parseInt(turfFor1);
 
+         SELF['blackTurf'] = turfFor0;
+         SELF['whiteTurf'] = turfFor1;
+
+         SELF['scoresContainerEle'].innerHTML = SELF['templateScoresContainer']({
+           scores: {
+            'blackTurf': SELF['blackTurf'],
+            'whiteTurf': SELF['whiteTurf'],
+            'blackPrisoners': SELF['blackPrisoners'],
+            'whitePrisoners': SELF['whitePrisoners']
+           }
+         });
+
          return [
            turfFor0, turfFor1
          ];
@@ -718,8 +744,10 @@
          SELF['lastPosition'] = {};
 
          SELF['playedPositions'] = [];
-
          SELF['lastPrisonersTaken'] = [];
+
+         SELF['whiteTurf'] = 0;
+         SELF['blackTurf'] = 0;
 
          SELF['movers'] = {};
 
@@ -729,6 +757,9 @@
            window.onfocus = SELF['handleOnFocus'];
 
            SELF['templatePlayedPositions'] = _.template(SELF['templatePlayedPositionsEle'].innerHTML.trim(), {
+             'variable': 'data'
+           });
+           SELF['templateScoresContainer'] = _.template(SELF['templateScoresContainerEle'].innerHTML.trim(), {
              'variable': 'data'
            });
          }
@@ -784,6 +815,8 @@
          // 'lastPositionEle': document.getElementById('last_position'),
          'playedPositionsEle': document.getElementById('played_positions'),
          'templatePlayedPositionsEle': document.getElementById('template_played_positions'),
+         'templateScoresContainerEle': document.getElementById('template_scores_container'),
+         'scoresContainerEle': document.getElementById('scores_container'),
          'currentPlayerEle': document.getElementById('current_player'),
          'scoreWhiteEle': document.getElementById('score_white'),
          'scoreBlackEle': document.getElementById('score_black'),
