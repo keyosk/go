@@ -258,10 +258,12 @@ body.currentPlayerWhite #game table tr td div:hover {
   background-color: rgba(255, 255, 255, .5);
   cursor: pointer;
 }
+body #game table tr td div:hover,
 body.currentPlayerBlack #game table tr td div:hover {
   background-color: rgba(0, 0, 0, .5);
   cursor: pointer;
 }
+body #game table tr td div:hover span,
 body.currentPlayerBlack #game table tr td div:hover span,
 body.currentPlayerBlack #game table tr td.Black div:hover span,
 body.currentPlayerWhite #game table tr td.Black div:hover span {
