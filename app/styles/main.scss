@@ -219,8 +219,8 @@ p.subscore {
   padding: 25px;
   overflow: auto;
 }
-.move.undone div,
-.pass.undone div {
+.undone div,
+.undone div {
   text-decoration: line-through
 }
 #game {

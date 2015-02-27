@@ -55,11 +55,6 @@ angular.module('gonubApp')
 
     var GO = CREATE_GO({
       'containerEle': document.getElementById('game'),
-      // 'playedPositionsEle': document.getElementById('played_positions'),
-      // 'templatePlayedPositionsEle': document.getElementById('template_played_positions'),
-      // 'templateScoresContainerEle': document.getElementById('template_scores_container'),
-      // 'scoresContainerEle': document.getElementById('scores_container'),
-      // 'currentPlayerEle': document.getElementById('current_player'),
       'lobbyName': lobbyName,
       'boardSize': boardSize,
       'pubnubUUID': pubnubUUID,
@@ -73,6 +68,15 @@ angular.module('gonubApp')
             'y': y,
             'pubnubUUID': pubnubUUID,
             'time': (new Date().getTime())
+          },
+          'callback': function() {
+
+            $scope.$apply(function() {
+
+              $scope.boardStruct = GO['boardStruct'];
+              $scope.playedPositions = GO['playedPositions'];
+
+            });
           }
         });
       },
@@ -89,7 +93,16 @@ angular.module('gonubApp')
               'type': 'pass',
               'forPlayer': GO.currentPlayer,
               'pubnubUUID': pubnubUUID,
-              'time': (new Date().getTime())
+              'time': (new Date().getTime()),
+              'callback': function() {
+
+                $scope.$apply(function() {
+
+                  $scope.boardStruct = GO['boardStruct'];
+                  $scope.playedPositions = GO['playedPositions'];
+
+                });
+              }
             }
           });
         }
@@ -110,7 +123,16 @@ angular.module('gonubApp')
               'type': 'undo',
               'forPlayer': GO.getOppositePlayer(GO.currentPlayer),
               'pubnubUUID': pubnubUUID,
-              'time': (new Date().getTime())
+              'time': (new Date().getTime()),
+              'callback': function() {
+
+                $scope.$apply(function() {
+
+                  $scope.boardStruct = GO['boardStruct'];
+                  $scope.playedPositions = GO['playedPositions'];
+
+                });
+              }
             }
           });
         }
@@ -176,17 +198,28 @@ angular.module('gonubApp')
     get_all_history({
       'channel': pubnubDataChannel,
       'callback': function(messages) {
+
         if (messages.length) {
 
           messages = GO.rollBackHistoryUsingUndo(messages);
 
           if (historyPlayBackSpeed === 0) {
 
+            console.log('history1')
             for (var idx in messages) {
               GO.processPubNubPayload(messages[idx], true);
             }
 
+            $scope.$apply(function() {
+
+              $scope.boardStruct = GO['boardStruct'];
+              $scope.playedPositions = GO['playedPositions'];
+
+            });
+
           } else {
+
+            console.log('history')
 
             var handleMessagesRecursively = function() {
               if (messages.length === 0) {
@@ -194,6 +227,14 @@ angular.module('gonubApp')
               }
               var message = messages.shift();
               GO.processPubNubPayload(message, true);
+
+              $scope.$apply(function() {
+
+                $scope.boardStruct = GO['boardStruct'];
+                $scope.playedPositions = GO['playedPositions'];
+
+              });
+
               setTimeout(handleMessagesRecursively, historyPlayBackSpeed);
             };
 
@@ -202,6 +243,7 @@ angular.module('gonubApp')
           }
 
         }
+
       },
       'error': function() {}
     });
@@ -210,7 +252,19 @@ angular.module('gonubApp')
       'channel': pubnubDataChannel,
       'callback': function(m) {
         GO.processPubNubPayload(m, false);
+        $scope.$apply(function() {
+
+          $scope.boardStruct = GO['boardStruct'];
+          $scope.playedPositions = GO['playedPositions'];
+
+        });
       }
+    });
+
+    $scope.$on("$destroy", function() {
+      pubnubInstance.unsubscribe({
+        'channel': pubnubDataChannel
+      })
     });
 
   });
