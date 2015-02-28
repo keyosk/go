@@ -8,6 +8,6 @@
  * Controller of the gonubApp
  */
 angular.module('gonubApp')
-  .controller('MainCtrl', function ($scope) {
+  .controller('MainCtrl', function () {
 
   });

@@ -50,28 +50,29 @@ angular.module('gonubApp')
       'publish_key': 'pub-c-01bb4e6e-4ad8-4c62-9b72-5278a11cf9e5'
     });
 
-    var pubnubUUID = PUBNUB.get_uuid();
+    var pubnubUUID = pubnubInstance.get_uuid();
 
     var pubnubDataChannel = 'go-game-' + VERSION + '-' + lobbyName + '-' + boardSize;
 
-    var GO = CREATE_GO({
+    var GO = window.CREATE_GO({
       'containerEle': document.getElementById('game'),
       'lobbyName': lobbyName,
       'boardSize': boardSize,
       'pubnubUUID': pubnubUUID,
       'dataChangedCallback': function() {
-        $scope.boardStruct = GO['boardStruct'];
-        $scope.playedPositions = GO['playedPositions'];
-        $scope.currentPlayer = GO['currentPlayer'];
-        $scope.currentPlayerColor = GO['getColorClass'](GO['currentPlayer']);
-        $scope.lastPosition = GO['lastPosition'];
-        $scope.whiteTurf = GO['whiteTurf'];
-        $scope.blackTurf = GO['blackTurf'];
-        $scope.whiteTurfCount = Object.keys(GO['whiteTurf']).length;
-        $scope.blackTurfCount = Object.keys(GO['blackTurf']).length;
-        $scope.whitePrisoners = GO['whitePrisoners'];
-        $scope.blackPrisoners = GO['blackPrisoners'];
-        $scope.turfIsVisible = GO['turfIsVisible'];
+        $scope.boardStruct = GO.boardStruct;
+        $scope.playedPositions = GO.playedPositions;
+        $scope.currentPlayer = GO.currentPlayer;
+        $scope.currentPlayerColor = GO.getColorClass(GO.currentPlayer);
+        $scope.lastPosition = GO.lastpOsition;
+        $scope.whiteTurf = GO.whiteTurf;
+        $scope.blackTurf = GO.blackTurf;
+        $scope.whiteTurfCount = Object.keys(GO.whiteTurf).length;
+        $scope.blackTurfCount = Object.keys(GO.blackTurf).length;
+        $scope.whitePrisoners = GO.whitePrisoners;
+        $scope.blackPrisoners = GO.blackPrisoners;
+        $scope.turfIsVisible = GO.turfIsVisible;
+        $scope.toggleTurfCount = GO.toggleTurfCount;
       },
       'clickCallback': function(x, y, forPlayer) {
         pubnubInstance.publish({
@@ -88,11 +89,11 @@ angular.module('gonubApp')
       },
       'passCallback': function() {
         if (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] !== pubnubUUID) {
-          alert('You are not allowed to pass for another player.');
+          window.alert('You are not allowed to pass for another player.');
           return;
         }
 
-        if (confirm('Are you sure you want to Pass?')) {
+        if (window.confirm('Are you sure you want to Pass?')) {
           pubnubInstance.publish({
             'channel': pubnubDataChannel,
             'message': {
@@ -109,11 +110,11 @@ angular.module('gonubApp')
         var oppositePlayerIsYou = (GO.movers[GO.getOppositePlayer(GO.currentPlayer)] && GO.movers[GO.getOppositePlayer(GO.currentPlayer)] === pubnubUUID);
 
         if (currentPlayerIsYou === true && oppositePlayerIsYou === false) {
-          alert('You are only allowed to undo your own move.');
+          window.alert('You are only allowed to undo your own move.');
           return;
         }
 
-        if (confirm('Are you sure you want to Undo?')) {
+        if (window.confirm('Are you sure you want to Undo?')) {
           pubnubInstance.publish({
             'channel': pubnubDataChannel,
             'message': {
@@ -129,9 +130,10 @@ angular.module('gonubApp')
 
     window.GO = GO;
 
-    var get_all_history = function(args) {
-      var channel = args['channel'],
-        callback = args['callback'],
+    var getAllHistory = function(args) {
+
+      var channel = args.channel,
+        callback = args.callback,
         start = 0,
         count = 100,
         history = [],
@@ -144,46 +146,49 @@ angular.module('gonubApp')
             start = messages[1];
             params.start = start;
             PUBNUB.each(msgs.reverse(), function(m) {
-              history.push(m)
+              history.push(m);
             });
-            if (msgs.length < count) return callback(history.reverse());
+            if (msgs.length < count) {
+              return callback(history.reverse());
+            }
             count = 100;
-            add_messages();
+            addMessages();
           }
         };
 
-      add_messages();
+      var addMessages = function() {
+        pubnubInstance.history(params);
+      };
 
-      function add_messages() {
-        pubnubInstance.history(params)
-      }
+      addMessages();
+
     };
 
     $scope.moveTo = function(x, y) {
-      var forPlayer = GO['currentPlayer'];
+      var forPlayer = GO.currentPlayer;
 
-      if (GO['movers'][forPlayer] && GO['movers'][forPlayer] !== GO['pubnubUUID']) {
-        alert('That piece belongs to someone else.');
+      if (GO.movers[forPlayer] && GO.movers[forPlayer] !== GO.pubnubUUID) {
+        window.alert('That piece belongs to someone else.');
         return;
       }
 
-      var result = GO['moveStoneToXY'](GO['currentPlayer'], x, y);
+      var result = GO.moveStoneToXY(GO.currentPlayer, x, y);
       if (result) {
-        GO['cachePlayedPosition']({
+        GO.cachePlayedPosition({
           'type': 'move',
           'forPlayer': forPlayer,
           'x': x,
           'y': y
         });
-        if ('function' === typeof GO['clickCallback']) {
-          GO['clickCallback'](x, y, GO['getOppositePlayer'](GO['currentPlayer']));
+        if ('function' === typeof GO.clickCallback) {
+          GO.clickCallback(x, y, GO.getOppositePlayer(GO.currentPlayer));
         }
       }
     };
 
-    $scope.boardStruct = GO['boardStruct'];
+    GO.dataChangedCallback();
 
-    get_all_history({
+    getAllHistory({
       'channel': pubnubDataChannel,
       'callback': function(messages) {
 
@@ -243,16 +248,10 @@ angular.module('gonubApp')
       }
     });
 
-    $scope.$on("$destroy", function() {
+    $scope.$on('$destroy', function() {
       pubnubInstance.unsubscribe({
         'channel': pubnubDataChannel
-      })
+      });
     });
-
-    $scope.toggleTurfCount = function() {
-
-      GO['toggleTurfCount']();
-
-    };
 
   });
