@@ -61,6 +61,9 @@
     };
 
     SELF.getPositionValid = function(forPlayer, x, y) {
+      // if (SELF.SHUTDOWN) {
+      //   return false;
+      // }
 
       if (SELF.boardStruct[x][y] !== -1) {
         return false;
@@ -92,60 +95,74 @@
 
       // Ko prevention logic is currently bugged. Need time to understand how undo effects it.
 
-      // if (numberPrisonersTaken === 1 && SELF.lastPrisonersTaken.length) {
+      if (numberPrisonersTaken === 1 && SELF.lastPrisonersTaken.length) {
 
-      //   var potentialRecapture = SELF.lastPrisonersTaken[SELF.lastPrisonersTaken.length - 1];
+        var potentialRecapture = SELF.lastPrisonersTaken[SELF.lastPrisonersTaken.length - 1];
 
-      //   var lastOwner = potentialRecapture.forPlayer;
-      //   var lastX = potentialRecapture.x;
-      //   var lastY = potentialRecapture.y;
-      //   var lastPrisoner = [];
+        var lastOwner = potentialRecapture.forPlayer;
+        var lastX = potentialRecapture.x;
+        var lastY = potentialRecapture.y;
+        var lastPrisoner = [];
 
-      //   for (var idx in potentialRecapture.prisoners) {
-      //     lastPrisoner.push(parseInt(idx.split(',')[0]));
-      //     lastPrisoner.push(parseInt(idx.split(',')[1]));
-      //   }
+        for (var idx in potentialRecapture.prisoners) {
+          lastPrisoner.push(parseInt(idx.split(',')[0]));
+          lastPrisoner.push(parseInt(idx.split(',')[1]));
+        }
 
-      //   var currentOwner = forPlayer;
-      //   var currentX = x;
-      //   var currentY = y;
-      //   var currentPrisoner = [];
+        var currentOwner = forPlayer;
+        var currentX = x;
+        var currentY = y;
+        var currentPrisoner = [];
 
-      //   for (var _idx in prisonersTakenData) {
-      //     currentPrisoner.push(parseInt(_idx.split(',')[0]));
-      //     currentPrisoner.push(parseInt(_idx.split(',')[1]));
-      //   }
+        for (var _idx in prisonersTakenData) {
+          currentPrisoner.push(parseInt(_idx.split(',')[0]));
+          currentPrisoner.push(parseInt(_idx.split(',')[1]));
+        }
 
-      //   var recaptureFound = false;
 
-      //   if (currentOwner !== lastOwner && currentPrisoner[0] === lastX && currentPrisoner[1] === lastY && lastPrisoner[0] === currentX && lastPrisoner[1] === currentY) {
-      //     recaptureFound = true;
-      //   }
 
-      //   if (recaptureFound) {
+        var recaptureFound = false;
 
-      //     var immediateRecapture = false;
+        if (currentOwner !== lastOwner && currentPrisoner[0] === lastX && currentPrisoner[1] === lastY && lastPrisoner[0] === currentX && lastPrisoner[1] === currentY && lastPrisoner.length === 2 && currentPrisoner.length === 2) {
+          recaptureFound = true;
+        }
 
-      //     var playedPositionsPointer = SELF.playedPositions.length;
-      //     while (true) {
-      //       if (playedPositionsPointer === 0) {
-      //         break;
-      //       }
-      //       playedPositionsPointer = playedPositionsPointer - 1;
-      //       if (SELF.playedPositions[playedPositionsPointer].type === 'move' && !('undid' in SELF.playedPositions[playedPositionsPointer])) {
-      //         immediateRecapture = (SELF.playedPositions[playedPositionsPointer].x === currentPrisoner[0] && SELF.playedPositions[playedPositionsPointer].y === currentPrisoner[1]);
-      //         break;
-      //       }
-      //     }
+        if (recaptureFound) {
+          // console.log('lastOwner', lastOwner);
+          // console.log('lastX', lastX);
+          // console.log('lastY', lastY);
+          // console.log('lastPrisoner', lastPrisoner);
 
-      //     if (immediateRecapture) {
-      //       numberPrisonersTaken = 0;
-      //       window.alert('Immediate recapture is not allowed.');
-      //     }
+          // console.log('______')
 
-      //   }
+          // console.log('currentOwner', currentOwner);
+          // console.log('currentX', currentX);
+          // console.log('currentY', currentY);
+          // console.log('currentPrisoner', currentPrisoner);
 
-      // }
+          var immediateRecapture = false;
+
+          var playedPositionsPointer = SELF.playedPositions.length;
+          while (true) {
+            if (playedPositionsPointer === 0) {
+              break;
+            }
+            playedPositionsPointer = playedPositionsPointer - 1;
+            if (SELF.playedPositions[playedPositionsPointer].type === 'move' && !('undid' in SELF.playedPositions[playedPositionsPointer])) {
+              immediateRecapture = (SELF.playedPositions[playedPositionsPointer].x === currentPrisoner[0] && SELF.playedPositions[playedPositionsPointer].y === currentPrisoner[1]);
+              break;
+            }
+          }
+
+          if (immediateRecapture) {
+            numberPrisonersTaken = 0;
+            // SELF.SHUTDOWN = true;
+            window.alert('Immediate recapture is not allowed.');
+          }
+
+        }
+
+      }
 
       /* end logic to determine if an immediate recapture is taking place */
 
@@ -416,7 +433,7 @@
       if ('type' in m) {
 
         // if (!forHistory && SELF.focused === false) {
-          if (!forHistory) {
+        if (!forHistory) {
           window.sounds.play('chat');
         }
 
