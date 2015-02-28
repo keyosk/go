@@ -90,60 +90,62 @@
 
       /* logic to determine if an immediate recapture is taking place */
 
-      if (numberPrisonersTaken === 1 && SELF.lastPrisonersTaken.length) {
+      // Ko prevention logic is currently bugged. Need time to understand how undo effects it.
 
-        var potentialRecapture = SELF.lastPrisonersTaken[SELF.lastPrisonersTaken.length - 1];
+      // if (numberPrisonersTaken === 1 && SELF.lastPrisonersTaken.length) {
 
-        var lastOwner = potentialRecapture.forPlayer;
-        var lastX = potentialRecapture.x;
-        var lastY = potentialRecapture.y;
-        var lastPrisoner = [];
+      //   var potentialRecapture = SELF.lastPrisonersTaken[SELF.lastPrisonersTaken.length - 1];
 
-        for (var idx in potentialRecapture.prisoners) {
-          lastPrisoner.push(parseInt(idx.split(',')[0]));
-          lastPrisoner.push(parseInt(idx.split(',')[1]));
-        }
+      //   var lastOwner = potentialRecapture.forPlayer;
+      //   var lastX = potentialRecapture.x;
+      //   var lastY = potentialRecapture.y;
+      //   var lastPrisoner = [];
 
-        var currentOwner = forPlayer;
-        var currentX = x;
-        var currentY = y;
-        var currentPrisoner = [];
+      //   for (var idx in potentialRecapture.prisoners) {
+      //     lastPrisoner.push(parseInt(idx.split(',')[0]));
+      //     lastPrisoner.push(parseInt(idx.split(',')[1]));
+      //   }
 
-        for (var _idx in prisonersTakenData) {
-          currentPrisoner.push(parseInt(_idx.split(',')[0]));
-          currentPrisoner.push(parseInt(_idx.split(',')[1]));
-        }
+      //   var currentOwner = forPlayer;
+      //   var currentX = x;
+      //   var currentY = y;
+      //   var currentPrisoner = [];
 
-        var recaptureFound = false;
+      //   for (var _idx in prisonersTakenData) {
+      //     currentPrisoner.push(parseInt(_idx.split(',')[0]));
+      //     currentPrisoner.push(parseInt(_idx.split(',')[1]));
+      //   }
 
-        if (currentOwner !== lastOwner && currentPrisoner[0] === lastX && currentPrisoner[1] === lastY && lastPrisoner[0] === currentX && lastPrisoner[1] === currentY) {
-          recaptureFound = true;
-        }
+      //   var recaptureFound = false;
 
-        if (recaptureFound) {
+      //   if (currentOwner !== lastOwner && currentPrisoner[0] === lastX && currentPrisoner[1] === lastY && lastPrisoner[0] === currentX && lastPrisoner[1] === currentY) {
+      //     recaptureFound = true;
+      //   }
 
-          var immediateRecapture = false;
+      //   if (recaptureFound) {
 
-          var playedPositionsPointer = SELF.playedPositions.length;
-          while (true) {
-            if (playedPositionsPointer === 0) {
-              break;
-            }
-            playedPositionsPointer = playedPositionsPointer - 1;
-            if (SELF.playedPositions[playedPositionsPointer].type === 'move' && !('undid' in SELF.playedPositions[playedPositionsPointer])) {
-              immediateRecapture = (SELF.playedPositions[playedPositionsPointer].x === currentPrisoner[0] && SELF.playedPositions[playedPositionsPointer].y === currentPrisoner[1]);
-              break;
-            }
-          }
+      //     var immediateRecapture = false;
 
-          if (immediateRecapture) {
-            numberPrisonersTaken = 0;
-            window.alert('Immediate recapture is not allowed.');
-          }
+      //     var playedPositionsPointer = SELF.playedPositions.length;
+      //     while (true) {
+      //       if (playedPositionsPointer === 0) {
+      //         break;
+      //       }
+      //       playedPositionsPointer = playedPositionsPointer - 1;
+      //       if (SELF.playedPositions[playedPositionsPointer].type === 'move' && !('undid' in SELF.playedPositions[playedPositionsPointer])) {
+      //         immediateRecapture = (SELF.playedPositions[playedPositionsPointer].x === currentPrisoner[0] && SELF.playedPositions[playedPositionsPointer].y === currentPrisoner[1]);
+      //         break;
+      //       }
+      //     }
 
-        }
+      //     if (immediateRecapture) {
+      //       numberPrisonersTaken = 0;
+      //       window.alert('Immediate recapture is not allowed.');
+      //     }
 
-      }
+      //   }
+
+      // }
 
       /* end logic to determine if an immediate recapture is taking place */
 
