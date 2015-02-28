@@ -64,7 +64,7 @@ angular.module('gonubApp')
         $scope.playedPositions = GO.playedPositions;
         $scope.currentPlayer = GO.currentPlayer;
         $scope.currentPlayerColor = GO.getColorClass(GO.currentPlayer);
-        $scope.lastPosition = GO.lastpOsition;
+        $scope.lastPosition = GO.lastPosition;
         $scope.whiteTurf = GO.whiteTurf;
         $scope.blackTurf = GO.blackTurf;
         $scope.whiteTurfCount = Object.keys(GO.whiteTurf).length;

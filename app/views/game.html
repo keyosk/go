@@ -87,7 +87,7 @@
         <div ng-repeat="(idx, value) in playedPositions.slice().reverse() track by $index" class="feed_item" ng-class="{ undone: (value.undid == true) }">
           <div class="player" ng-class="{'white': (value.forPlayer == 1), 'black': (value.forPlayer == 0)}">
             <div class="index">
-              {{ idx + 1 }}.
+              {{ playedPositions.length - idx }}.
             </div>
             <div class="piece"></div>
           </div>
