@@ -1,649 +1,638 @@
-   (function() {
+'use strict';
 
-     var randomString = function(len) {
-       var text = '';
-       var charset = 'abcdefghijklmnopqrstuvwxyz0123456789';
-       for (var i = 0; i < len; i++) {
-         text += charset.charAt(Math.floor(Math.random() * charset.length));
-       }
-       return text;
-     };
+(function() {
 
-     var CREATE_GO = function(setup) {
+  var CREATE_GO = function(setup) {
 
-       var SELF = function(setup) {
-         return CREATE_GO(setup);
-       };
+    var SELF = function(setup) {
+      return CREATE_GO(setup);
+    };
 
-       var findLibertyRecurseSafety = 0;
+    var findLibertyRecurseSafety = 0;
 
-       SELF['initted'] = false;
+    SELF.initted = false;
 
-       SELF['turfIsVisible'] = false;
+    SELF.turfIsVisible = false;
 
-       SELF['movers'] = {};
+    SELF.movers = {};
 
-       SELF['focused'] = true;
+    SELF.focused = true;
 
 
-       SELF['lobbyName'] = setup['lobbyName'];
-       SELF['boardSize'] = setup['boardSize'];
+    SELF.lobbyName = setup.lobbyName;
+    SELF.boardSize = setup.boardSize;
 
-       SELF['pubnubUUID'] = setup['pubnubUUID'];
+    SELF.pubnubUUID = setup.pubnubUUID;
 
-       SELF['clickCallback'] = setup['clickCallback'];
-       SELF['passCallback'] = setup['passCallback'];
-       SELF['undoCallback'] = setup['undoCallback'];
-       SELF['dataChangedCallback'] = setup['dataChangedCallback'];
+    SELF.clickCallback = setup.clickCallback;
+    SELF.passCallback = setup.passCallback;
+    SELF.undoCallback = setup.undoCallback;
+    SELF.dataChangedCallback = setup.dataChangedCallback;
 
-       SELF['playedPositions'] = [];
+    SELF.playedPositions = [];
 
-       SELF['lastPrisonersTaken'] = [];
+    SELF.lastPrisonersTaken = [];
 
-       SELF['getOppositePlayer'] = function(forPlayer) {
-         return (forPlayer === 0) ? 1 : 0
-       };
+    SELF.getOppositePlayer = function(forPlayer) {
+      return (forPlayer === 0) ? 1 : 0;
+    };
 
-       SELF['handleOnBlur'] = function() {
-         SELF['focused'] = false;
-       };
+    SELF.handleOnBlur = function() {
+      SELF.focused = false;
+    };
 
-       SELF['handleOnFocus'] = function() {
-         SELF['focused'] = true;
-       };
+    SELF.handleOnFocus = function() {
+      SELF.focused = true;
+    };
 
-       SELF['createEmptyBoardStruct'] = function() {
+    SELF.createEmptyBoardStruct = function() {
 
-         var emptyBoard = [];
+      var emptyBoard = [];
 
-         for (var x = 0; x < SELF['boardSize']; x++) {
-           emptyBoard.push([]);
-           for (var y = 0; y < SELF['boardSize']; y++) {
-             emptyBoard[x].push(-1);
-           }
-         }
+      for (var x = 0; x < SELF.boardSize; x++) {
+        emptyBoard.push([]);
+        for (var y = 0; y < SELF.boardSize; y++) {
+          emptyBoard[x].push(-1);
+        }
+      }
 
-         return emptyBoard;
+      return emptyBoard;
 
-       };
+    };
 
-       SELF['getPositionValid'] = function(forPlayer, x, y) {
+    SELF.getPositionValid = function(forPlayer, x, y) {
 
-         if (SELF['boardStruct'][x][y] !== -1) {
-           return false;
-         }
+      if (SELF.boardStruct[x][y] !== -1) {
+        return false;
+      }
 
-         var adjacentPositions = SELF['adjacentPositionFinder'](x, y);
+      var adjacentPositions = SELF.adjacentPositionFinder(x, y);
 
-         findLibertyRecurseSafety = 0;
+      findLibertyRecurseSafety = 0;
 
-         var adjacentPositionsData = SELF['findDataForAdjacentPositions'](
-           forPlayer, [
-             [x, y]
-           ],
-           adjacentPositions
-         );
+      var adjacentPositionsData = SELF.findDataForAdjacentPositions(
+        forPlayer, [
+          [x, y]
+        ],
+        adjacentPositions
+      );
 
-         SELF['boardStruct'][x][y] = forPlayer;
+      SELF.boardStruct[x][y] = forPlayer;
 
-         var prisonersTakenData = SELF['tryToTakePrisoners'](forPlayer, x, y);
+      var prisonersTakenData = SELF.tryToTakePrisoners(forPlayer, x, y);
 
-         var numberPrisonersTaken = Object.keys(prisonersTakenData).length;
+      var numberPrisonersTaken = Object.keys(prisonersTakenData).length;
 
-         SELF['lastPosition'] = {
-           'x': parseInt(x),
-           'y': parseInt(y)
-         };
+      SELF.lastPosition = {
+        'x': parseInt(x),
+        'y': parseInt(y)
+      };
 
-         /* logic to determine if an immediate recapture is taking place */
+      /* logic to determine if an immediate recapture is taking place */
 
-         if (numberPrisonersTaken === 1 && SELF['lastPrisonersTaken'].length) {
+      if (numberPrisonersTaken === 1 && SELF.lastPrisonersTaken.length) {
 
-           var potentialRecapture = SELF['lastPrisonersTaken'][SELF['lastPrisonersTaken'].length - 1];
+        var potentialRecapture = SELF.lastPrisonersTaken[SELF.lastPrisonersTaken.length - 1];
 
-           var lastOwner = potentialRecapture.forPlayer;
-           var lastX = potentialRecapture.x;
-           var lastY = potentialRecapture.y;
-           var lastPrisoner = [];
+        var lastOwner = potentialRecapture.forPlayer;
+        var lastX = potentialRecapture.x;
+        var lastY = potentialRecapture.y;
+        var lastPrisoner = [];
 
-           for (var idx in potentialRecapture.prisoners) {
-             lastPrisoner.push(parseInt(idx.split(',')[0]));
-             lastPrisoner.push(parseInt(idx.split(',')[1]));
-           }
+        for (var idx in potentialRecapture.prisoners) {
+          lastPrisoner.push(parseInt(idx.split(',')[0]));
+          lastPrisoner.push(parseInt(idx.split(',')[1]));
+        }
 
-           var currentOwner = forPlayer;
-           var currentX = x;
-           var currentY = y;
-           var currentPrisoner = [];
-
-           for (var idx in prisonersTakenData) {
-             currentPrisoner.push(parseInt(idx.split(',')[0]));
-             currentPrisoner.push(parseInt(idx.split(',')[1]));
-           }
+        var currentOwner = forPlayer;
+        var currentX = x;
+        var currentY = y;
+        var currentPrisoner = [];
 
-           var recaptureFound = false;
+        for (var _idx in prisonersTakenData) {
+          currentPrisoner.push(parseInt(_idx.split(',')[0]));
+          currentPrisoner.push(parseInt(_idx.split(',')[1]));
+        }
 
-           if (currentOwner !== lastOwner && currentPrisoner[0] === lastX && currentPrisoner[1] === lastY && lastPrisoner[0] === currentX && lastPrisoner[1] === currentY) {
-             recaptureFound = true;
-           }
+        var recaptureFound = false;
 
-           if (recaptureFound) {
+        if (currentOwner !== lastOwner && currentPrisoner[0] === lastX && currentPrisoner[1] === lastY && lastPrisoner[0] === currentX && lastPrisoner[1] === currentY) {
+          recaptureFound = true;
+        }
 
-             var immediateRecapture = false;
+        if (recaptureFound) {
 
-             var idx = SELF['playedPositions'].length;
-             while (true) {
-               if (idx === 0) {
-                 break;
-               }
-               idx = idx - 1;
-               if (SELF['playedPositions'][idx].type === 'move' && !('undid' in SELF['playedPositions'][idx])) {
-                 immediateRecapture = (SELF['playedPositions'][idx].x === currentPrisoner[0] && SELF['playedPositions'][idx].y === currentPrisoner[1])
-                 break;
-               }
-             }
+          var immediateRecapture = false;
 
-             if (immediateRecapture) {
-               numberPrisonersTaken = 0;
-               alert('Immediate recapture is not allowed.');
-             }
+          var playedPositionsPointer = SELF.playedPositions.length;
+          while (true) {
+            if (playedPositionsPointer === 0) {
+              break;
+            }
+            playedPositionsPointer = playedPositionsPointer - 1;
+            if (SELF.playedPositions[playedPositionsPointer].type === 'move' && !('undid' in SELF.playedPositions[playedPositionsPointer])) {
+              immediateRecapture = (SELF.playedPositions[playedPositionsPointer].x === currentPrisoner[0] && SELF.playedPositions[playedPositionsPointer].y === currentPrisoner[1]);
+              break;
+            }
+          }
 
-           }
+          if (immediateRecapture) {
+            numberPrisonersTaken = 0;
+            window.alert('Immediate recapture is not allowed.');
+          }
 
-         }
+        }
 
-         /* end logic to determine if an immediate recapture is taking place */
+      }
 
-         if (numberPrisonersTaken) {
+      /* end logic to determine if an immediate recapture is taking place */
 
-           for (var idx in prisonersTakenData) {
-             var _x = idx.split(',')[0];
-             var _y = idx.split(',')[1];
-             SELF['boardStruct'][_x][_y] = -1;
-           }
+      if (numberPrisonersTaken) {
 
-           SELF['lastPrisonersTaken'].push({
-             forPlayer: forPlayer,
-             x: x,
-             y: y,
-             prisoners: prisonersTakenData
-           });
+        for (var idxPrisonersTaken in prisonersTakenData) {
+          var _x = idxPrisonersTaken.split(',')[0];
+          var _y = idxPrisonersTaken.split(',')[1];
+          SELF.boardStruct[_x][_y] = -1;
+        }
 
-           if (SELF['getOppositePlayer'](forPlayer) === 0) {
-             SELF['blackPrisoners'] = parseInt(SELF['blackPrisoners']) + numberPrisonersTaken;
-           } else {
-             SELF['whitePrisoners'] = parseInt(SELF['whitePrisoners']) + numberPrisonersTaken;
-           }
+        SELF.lastPrisonersTaken.push({
+          forPlayer: forPlayer,
+          x: x,
+          y: y,
+          prisoners: prisonersTakenData
+        });
 
-         }
+        if (SELF.getOppositePlayer(forPlayer) === 0) {
+          SELF.blackPrisoners = parseInt(SELF.blackPrisoners) + numberPrisonersTaken;
+        } else {
+          SELF.whitePrisoners = parseInt(SELF.whitePrisoners) + numberPrisonersTaken;
+        }
 
-         if (Object.keys(adjacentPositionsData.liberties).length === 0 && numberPrisonersTaken === 0) {
-           SELF['boardStruct'][x][y] = -1;
-           return false;
-         }
+      }
 
-         return true;
-       };
+      if (Object.keys(adjacentPositionsData.liberties).length === 0 && numberPrisonersTaken === 0) {
+        SELF.boardStruct[x][y] = -1;
+        return false;
+      }
 
-       SELF['adjacentPositionFinder'] = function(x, y) {
+      return true;
+    };
 
-         var findUp = (x == 0) ? false : true;
-         var findRight = (y == SELF['boardSize'] - 1) ? false : true;
-         var findDown = (x == SELF['boardSize'] - 1) ? false : true;
-         var findLeft = (y == 0) ? false : true;
+    SELF.adjacentPositionFinder = function(x, y) {
 
-         var positions = [];
+      x = parseInt(x);
+      y = parseInt(y);
 
-         if (findDown) {
-           var positionDown = SELF['boardStruct'][x + 1][y];
-           positions.push([x + 1, y]);
-         }
+      var findUp = (x === 0) ? false : true;
+      var findRight = (y === SELF.boardSize - 1) ? false : true;
+      var findDown = (x === SELF.boardSize - 1) ? false : true;
+      var findLeft = (y === 0) ? false : true;
 
-         if (findUp) {
-           var positionUp = SELF['boardStruct'][x - 1][y];
-           positions.push([x - 1, y]);
-         }
+      var positions = [];
 
-         if (findRight) {
-           var positionRight = SELF['boardStruct'][x][y + 1];
-           positions.push([x, y + 1]);
-         }
+      if (findDown) {
+        positions.push([x + 1, y]);
+      }
 
-         if (findLeft) {
-           var positionLeft = SELF['boardStruct'][x][y - 1];
-           positions.push([x, y - 1]);
-         }
+      if (findUp) {
+        positions.push([x - 1, y]);
+      }
 
-         return positions;
+      if (findRight) {
+        positions.push([x, y + 1]);
+      }
 
-       };
+      if (findLeft) {
+        positions.push([x, y - 1]);
+      }
 
-       SELF['findDataForAdjacentPositions'] = function(forPlayer, examinedPositions, adjacentPositions) {
+      return positions;
 
-         findLibertyRecurseSafety++
+    };
 
-         if (findLibertyRecurseSafety > 200) {
+    SELF.findDataForAdjacentPositions = function(forPlayer, examinedPositions, adjacentPositions) {
 
-           return {};
-         }
+      findLibertyRecurseSafety++;
 
-         var _results = {
-           'liberties': {},
-           'group': {}
-         };
+      if (findLibertyRecurseSafety > 200) {
 
-         for (var idx in adjacentPositions) {
-           var x = adjacentPositions[idx][0];
-           var y = adjacentPositions[idx][1];
+        return {};
+      }
 
-           var positionOwner = SELF['boardStruct'][x][y];
+      var _results = {
+        'liberties': {},
+        'group': {}
+      };
 
-           if ((forPlayer === -1 && positionOwner !== -1) || (forPlayer !== -1 && positionOwner === -1)) {
-             _results['liberties'][x + ',' + y] = positionOwner;
-             continue;
-           }
+      for (var idx in adjacentPositions) {
+        var x = adjacentPositions[idx][0];
+        var y = adjacentPositions[idx][1];
 
-           /*protection attempt for recursive loopback behavior*/
+        var positionOwner = SELF.boardStruct[x][y];
 
-           var shouldContinue = false;
-           for (var _idx in examinedPositions) {
-             var _x = examinedPositions[_idx][0];
-             var _y = examinedPositions[_idx][1];
-             if (x === _x && y === _y) {
-               shouldContinue = true;
-               break;
-             }
-           }
-           if (shouldContinue) {
-             continue;
-           }
+        if ((forPlayer === -1 && positionOwner !== -1) || (forPlayer !== -1 && positionOwner === -1)) {
+          _results.liberties[x + ',' + y] = positionOwner;
+          continue;
+        }
 
-           /*protection attempt for recursive loopback behavior*/
+        /*protection attempt for recursive loopback behavior*/
 
-           if (positionOwner === forPlayer) {
+        var shouldContinue = false;
+        for (var _idx in examinedPositions) {
+          var _x = examinedPositions[_idx][0];
+          var _y = examinedPositions[_idx][1];
+          if (x === _x && y === _y) {
+            shouldContinue = true;
+            break;
+          }
+        }
+        if (shouldContinue) {
+          continue;
+        }
 
-             var moreAdjacentPositions = SELF['adjacentPositionFinder'](x, y);
+        /*protection attempt for recursive loopback behavior*/
 
-             moreAdjacentPositions = _.filter(moreAdjacentPositions, function(item) {
-               var _x = item[0];
-               var _y = item[1];
+        if (positionOwner === forPlayer) {
 
-               var shouldReturnPosition = true;
+          var moreAdjacentPositions = SELF.adjacentPositionFinder(x, y);
 
-               for (var _idx in examinedPositions) {
-                 var __x = examinedPositions[_idx][0];
-                 var __y = examinedPositions[_idx][1];
-                 if (__x == _x && __y == _y) {
-                   shouldReturnPosition = false;
+          moreAdjacentPositions = window._.filter(moreAdjacentPositions, function(item) {
+            var _x = item[0];
+            var _y = item[1];
 
-                   break;
-                 }
-               }
+            var shouldReturnPosition = true;
 
-               return shouldReturnPosition;
-             });
+            for (var _idx in examinedPositions) {
+              var __x = parseInt(examinedPositions[_idx][0]);
+              var __y = parseInt(examinedPositions[_idx][1]);
+              if (__x === _x && __y === _y) {
+                shouldReturnPosition = false;
+                break;
+              }
+            }
 
-             examinedPositions.push([x, y]);
+            return shouldReturnPosition;
+          });
 
-             var adjacentPositionsData = SELF['findDataForAdjacentPositions'](forPlayer, examinedPositions, moreAdjacentPositions);
+          examinedPositions.push([x, y]);
 
-             for (var _idx in adjacentPositionsData.liberties) {
-               _results['liberties'][_idx] = 1;
-             }
-           }
-         }
+          var adjacentPositionsData = SELF.findDataForAdjacentPositions(forPlayer, examinedPositions, moreAdjacentPositions);
 
-         _results['group'] = examinedPositions;
+          for (var __idx in adjacentPositionsData.liberties) {
+            _results.liberties[__idx] = 1;
+          }
+        }
+      }
 
-         return _results;
+      _results.group = examinedPositions;
 
-       };
+      return _results;
 
-       SELF['tryToTakePrisoners'] = function(forPlayer, x, y) {
+    };
 
-         var adjacentPositions = SELF['adjacentPositionFinder'](x, y);
+    SELF.tryToTakePrisoners = function(forPlayer, x, y) {
 
-         var opponentPlayer = SELF['getOppositePlayer'](forPlayer);
+      var adjacentPositions = SELF.adjacentPositionFinder(x, y);
 
-         adjacentPositions = _.filter(adjacentPositions, function(item) {
-           var _x = item[0];
-           var _y = item[1];
-           return SELF['boardStruct'][_x][_y] === opponentPlayer;
-         });
+      var opponentPlayer = SELF.getOppositePlayer(forPlayer);
 
-         var prisonersList = {};
+      adjacentPositions = window._.filter(adjacentPositions, function(item) {
+        var _x = item[0];
+        var _y = item[1];
+        return SELF.boardStruct[_x][_y] === opponentPlayer;
+      });
 
-         for (var idx in adjacentPositions) {
-           var _x = adjacentPositions[idx][0];
-           var _y = adjacentPositions[idx][1];
-           findLibertyRecurseSafety = 0;
-           var adjacentPositionsData = SELF['findDataForAdjacentPositions'](
-             opponentPlayer, [
-               [x, y],
-               [_x, _y]
-             ],
-             SELF['adjacentPositionFinder'](_x, _y)
-           );
+      var prisonersList = {};
 
-           if (Object.keys(adjacentPositionsData.liberties).length === 0) {
+      for (var idx in adjacentPositions) {
+        var _x = adjacentPositions[idx][0];
+        var _y = adjacentPositions[idx][1];
+        findLibertyRecurseSafety = 0;
+        var adjacentPositionsData = SELF.findDataForAdjacentPositions(
+          opponentPlayer, [
+            [x, y],
+            [_x, _y]
+          ],
+          SELF.adjacentPositionFinder(_x, _y)
+        );
 
-             prisonersList[_x + ',' + _y] = opponentPlayer;
+        if (Object.keys(adjacentPositionsData.liberties).length === 0) {
 
-             for (var _idx in adjacentPositionsData.group) {
-               var __x = adjacentPositionsData.group[_idx][0];
-               var __y = adjacentPositionsData.group[_idx][1];
-               if (SELF['boardStruct'][__x][__y] === opponentPlayer) {
-                 prisonersList[__x + ',' + __y] = opponentPlayer;
-               }
-             }
-           }
-         }
+          prisonersList[_x + ',' + _y] = opponentPlayer;
 
-         return prisonersList;
+          for (var _idx in adjacentPositionsData.group) {
+            var __x = adjacentPositionsData.group[_idx][0];
+            var __y = adjacentPositionsData.group[_idx][1];
+            if (SELF.boardStruct[__x][__y] === opponentPlayer) {
+              prisonersList[__x + ',' + __y] = opponentPlayer;
+            }
+          }
+        }
+      }
 
-       };
+      return prisonersList;
 
+    };
 
-       SELF['moveStoneToXY'] = function(forPlayer, x, y) {
 
-         if (forPlayer !== SELF['currentPlayer']) {
-           // don't allow a click out of turn
-           return false;
-         }
+    SELF.moveStoneToXY = function(forPlayer, x, y) {
 
-         var positionValid = SELF['getPositionValid'](forPlayer, x, y);
+      if (forPlayer !== SELF.currentPlayer) {
+        // don't allow a click out of turn
+        return false;
+      }
 
-         if (positionValid === false) {
-           return false;
-         }
+      var positionValid = SELF.getPositionValid(forPlayer, x, y);
 
-         SELF['switchCurrentPlayer']();
+      if (positionValid === false) {
+        return false;
+      }
 
+      SELF.switchCurrentPlayer();
 
 
-         return true;
-       };
-
-       SELF['switchCurrentPlayer'] = function() {
-         SELF['currentPlayer'] = SELF['getOppositePlayer'](SELF['currentPlayer']);
-
-       };
-
-       SELF['getColorClass'] = function(colorState) {
-         var color = '';
-         if (colorState === 0) {
-           color = 'Black';
-         } else if (colorState === 1) {
-           color = 'White';
-         }
-         return color;
-       };
-
-       SELF['cachePlayedPosition'] = function(m) {
-
-         if (!('pubnubUUID' in m)) {
-           m['pubnubUUID'] = SELF['pubnubUUID'];
-         }
-
-         if (!('time' in m)) {
-           m['time'] = (new Date().getTime());
-         }
-
-         SELF['playedPositions'].push(m);
-
-       };
-
-       SELF['rollBackHistoryUsingUndo'] = function(messages) {
-
-         //Remove all previous undids to prevent cludging
-         for (var idx in messages) {
-           delete messages[idx].undid;
-         }
 
-         for (var idx in messages) {
-           if ('type' in messages[idx] && messages[idx].type === 'undo') {
-             var undoIndex = idx;
-             while (undoIndex - 1 >= 0) {
-               undoIndex = undoIndex - 1;
-               if (undoIndex >= 0) {
-                 if ('type' in messages[undoIndex] && messages[undoIndex].type !== 'undo' && !('undid' in messages[undoIndex])) {
-                   messages[undoIndex].undid = true;
-                   break;
-                 }
-               } else {
-                 break;
-               }
-             }
-           }
-         }
-         return messages;
-       };
+      return true;
+    };
 
-       SELF['processPubNubPayload'] = function(m, forHistory) {
-         if ('type' in m) {
+    SELF.switchCurrentPlayer = function() {
+      SELF.currentPlayer = SELF.getOppositePlayer(SELF.currentPlayer);
+
+    };
+
+    SELF.getColorClass = function(colorState) {
+      var color = '';
+      if (colorState === 0) {
+        color = 'Black';
+      } else if (colorState === 1) {
+        color = 'White';
+      }
+      return color;
+    };
+
+    SELF.cachePlayedPosition = function(m) {
+
+      if (!('pubnubUUID' in m)) {
+        m.pubnubUUID = SELF.pubnubUUID;
+      }
+
+      if (!('time' in m)) {
+        m.time = (new Date().getTime());
+      }
+
+      SELF.playedPositions.push(m);
+
+    };
+
+    SELF.rollBackHistoryUsingUndo = function(messages) {
+
+      //Remove all previous undids to prevent cludging
+      for (var idxMessageToDelete in messages) {
+        delete messages[idxMessageToDelete].undid;
+      }
 
-           if (!forHistory && SELF['focused'] === false) {
-             sounds.play('chat');
-           }
+      for (var idxMessage in messages) {
+        if ('type' in messages[idxMessage] && messages[idxMessage].type === 'undo') {
+          var undoIndex = idxMessage;
+          while (undoIndex - 1 >= 0) {
+            undoIndex = undoIndex - 1;
+            if (undoIndex >= 0) {
+              if ('type' in messages[undoIndex] && messages[undoIndex].type !== 'undo' && !('undid' in messages[undoIndex])) {
+                messages[undoIndex].undid = true;
+                break;
+              }
+            } else {
+              break;
+            }
+          }
+        }
+      }
+      return messages;
+    };
 
-           if (m.type === 'move' && 'forPlayer' in m && 'pubnubUUID' in m && !SELF['movers'][m.forPlayer]) {
-             SELF['movers'][m.forPlayer] = m.pubnubUUID;
-           }
+    SELF.processPubNubPayload = function(m, forHistory) {
+      if ('type' in m) {
 
-           if ('undid' in m) {
-             SELF['cachePlayedPosition'](m);
-           } else if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
+        if (!forHistory && SELF.focused === false) {
+          window.sounds.play('chat');
+        }
 
-             var result = SELF['moveStoneToXY'](parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
-             if (result) {
-               SELF['cachePlayedPosition'](m);
-             }
-             if (!forHistory && SELF['turfIsVisible']) {
-               SELF['attemptToCalculateAndAssignScores']();
-             }
+        if (m.type === 'move' && 'forPlayer' in m && 'pubnubUUID' in m && !SELF.movers[m.forPlayer]) {
+          SELF.movers[m.forPlayer] = m.pubnubUUID;
+        }
 
-           } else if (m.type === 'pass' && 'forPlayer' in m) {
-             if (parseInt(SELF['currentPlayer']) === parseInt(m.forPlayer)) {
-               if (SELF['movers'][m.forPlayer] && SELF['movers'][m.forPlayer] !== m.pubnubUUID) {
-                 //Only allow a pass on your own turn
-               } else {
-                 var lastPosition = SELF['playedPositions'][SELF['playedPositions'].length - 1];
-                 if (lastPosition.type === 'pass') {
-                   SELF['turfIsVisible'] = true;
-                   SELF['attemptToCalculateAndAssignScores']();
-                 }
-                 // if (results[0] || results[1]) {
-                 //   var totalPointsBlack = parseInt(SELF['whitePrisoners']) + parseInt(results[0]);
-                 //   var totalPointsWhite = parseInt(SELF['blackPrisoners']) + parseInt(results[1]);
-                 //   if (totalPointsWhite > totalPointsBlack) {
-                 //     alert('White Wins!');
-                 //   } else if (totalPointsBlack > totalPointsWhite) {
-                 //     alert('Black Wins!');
-                 //   } else {
-                 //     alert('Draw');
-                 //   }
-                 // }
-                 // }
-                 SELF['cachePlayedPosition'](m);
-                 SELF['switchCurrentPlayer']();
-               }
-             }
-           } else if (m.type === 'undo') {
-             SELF['cachePlayedPosition'](m);
-             if (forHistory === false) {
-               SELF['undo']();
-             }
-           }
-         }
-       };
+        if ('undid' in m) {
+          SELF.cachePlayedPosition(m);
+        } else if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
 
-       SELF['undo'] = function() {
+          var result = SELF.moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
+          if (result) {
+            SELF.cachePlayedPosition(m);
+          }
+          if (!forHistory && SELF.turfIsVisible) {
+            SELF.attemptToCalculateAndAssignScores();
+          }
 
-         var playedPositions = SELF['rollBackHistoryUsingUndo'](SELF['playedPositions']);
+        } else if (m.type === 'pass' && 'forPlayer' in m) {
+          if (parseInt(SELF.currentPlayer) === parseInt(m.forPlayer)) {
+            if (SELF.movers[m.forPlayer] && SELF.movers[m.forPlayer] !== m.pubnubUUID) {
+              //Only allow a pass on your own turn
+            } else {
+              var lastPosition = SELF.playedPositions[SELF.playedPositions.length - 1];
+              if (lastPosition.type === 'pass') {
+                SELF.turfIsVisible = true;
+                SELF.attemptToCalculateAndAssignScores();
+              }
+              // if (results[0] || results[1]) {
+              //   var totalPointsBlack = parseInt(SELF.whitePrisoners) + parseInt(results[0]);
+              //   var totalPointsWhite = parseInt(SELF.blackPrisoners) + parseInt(results[1]);
+              //   if (totalPointsWhite > totalPointsBlack) {
+              //     window.alert('White Wins!');
+              //   } else if (totalPointsBlack > totalPointsWhite) {
+              //     window.alert('Black Wins!');
+              //   } else {
+              //     window.alert('Draw');
+              //   }
+              // }
+              // }
+              SELF.cachePlayedPosition(m);
+              SELF.switchCurrentPlayer();
+            }
+          }
+        } else if (m.type === 'undo') {
+          SELF.cachePlayedPosition(m);
+          if (forHistory === false) {
+            SELF.undo();
+          }
+        }
+      }
+    };
 
-         SELF['init']();
+    SELF.undo = function() {
 
-         for (var idx in playedPositions) {
-           SELF['processPubNubPayload'](playedPositions[idx], true);
-         }
+      var playedPositions = SELF.rollBackHistoryUsingUndo(SELF.playedPositions);
 
-         if (SELF['turfIsVisible']) {
-           SELF['attemptToCalculateAndAssignScores']();
-         }
+      SELF.init();
 
-       };
+      for (var idx in playedPositions) {
+        SELF.processPubNubPayload(playedPositions[idx], true);
+      }
 
-       SELF['attemptToCalculateAndAssignScores'] = function() {
+      if (SELF.turfIsVisible) {
+        SELF.attemptToCalculateAndAssignScores();
+      }
 
-         var finalEmptySpots = [];
+    };
 
-         var finalEmptyCoords = {};
+    SELF.attemptToCalculateAndAssignScores = function() {
 
-         var emptySpots = 0;
+      var finalEmptySpots = [];
 
-         var shouldBreak = false;
+      var finalEmptyCoords = {};
 
-         for (var x in SELF['boardStruct']) {
+      var emptySpots = 0;
 
-           for (var y in SELF['boardStruct'][x]) {
+      for (var x in SELF.boardStruct) {
 
-             x = parseInt(x);
-             y = parseInt(y);
+        for (var y in SELF.boardStruct[x]) {
 
-             if (SELF['boardStruct'][x][y] === -1) {
+          x = parseInt(x);
+          y = parseInt(y);
 
-               emptySpots++;
+          if (SELF.boardStruct[x][y] === -1) {
 
-               var adjacentPositions = SELF['adjacentPositionFinder'](x, y);
+            emptySpots++;
 
-               findLibertyRecurseSafety = 0;
+            var adjacentPositions = SELF.adjacentPositionFinder(x, y);
 
-               var adjacentPositionsData = SELF['findDataForAdjacentPositions'](-1, [
-                   [x, y]
-                 ],
-                 adjacentPositions
-               );
+            findLibertyRecurseSafety = 0;
 
-               finalEmptySpots.push(adjacentPositionsData);
-             }
+            var adjacentPositionsData = SELF.findDataForAdjacentPositions(-1, [
+                [x, y]
+              ],
+              adjacentPositions
+            );
 
-           }
-         }
+            finalEmptySpots.push(adjacentPositionsData);
+          }
 
-         var turfFor0 = 0;
-         var turfFor1 = 0;
+        }
+      }
 
-         for (var idx in finalEmptySpots) {
+      var turfFor0 = 0;
+      var turfFor1 = 0;
 
-           var owners = [];
+      for (var idx in finalEmptySpots) {
 
-           for (var _idx in finalEmptySpots[idx].liberties) {
-             var _x = parseInt(_idx.split(',')[0]);
-             var _y = parseInt(_idx.split(',')[1]);
-             owners.push(SELF['boardStruct'][_x][_y]);
-           }
+        var owners = [];
 
-           var sameOwner = (owners.length === _.filter(owners, function(item) {
-             return item === owners[0];
-           }).length);
+        for (var _idx in finalEmptySpots[idx].liberties) {
+          var _x = parseInt(_idx.split(',')[0]);
+          var _y = parseInt(_idx.split(',')[1]);
+          owners.push(SELF.boardStruct[_x][_y]);
+        }
 
-           if (sameOwner && (owners[0] === 1 || owners[0] === 0)) {
+        var sameOwner = (owners.length === window._.filter(owners, function(item) {
+          return item === owners[0];
+        }).length);
 
-             if (owners[0] === 0) {
-               turfFor0++;
-             } else if (owners[0] === 1) {
-               turfFor1++;
-             }
+        if (sameOwner && (owners[0] === 1 || owners[0] === 0)) {
 
-             for (var _idx in finalEmptySpots[idx].group) {
+          if (owners[0] === 0) {
+            turfFor0++;
+          } else if (owners[0] === 1) {
+            turfFor1++;
+          }
 
-               //dedupe
+          for (var __idx in finalEmptySpots[idx].group) {
 
-               var _x = parseInt(finalEmptySpots[idx].group[_idx][0]);
-               var _y = parseInt(finalEmptySpots[idx].group[_idx][1]);
+            //dedupe
 
-               finalEmptyCoords[_x + ',' + _y] = {
-                 forPlayer: owners[0],
-                 x: _x,
-                 y: _y
-               };
+            var __x = parseInt(finalEmptySpots[idx].group[__idx][0]);
+            var __y = parseInt(finalEmptySpots[idx].group[__idx][1]);
 
-             }
+            finalEmptyCoords[__x + ',' + __y] = {
+              forPlayer: owners[0],
+              x: __x,
+              y: __y
+            };
 
-           } else {
-             // console.error('not the same owner', owners);
-           }
+          }
 
+        } else {
+          // console.error('not the same owner', owners);
+        }
 
-         }
 
-         SELF['blackTurf'] = {};
-         SELF['whiteTurf'] = {};
+      }
 
-         for (var _idx in finalEmptyCoords) {
-           var _x = parseInt(finalEmptyCoords[_idx].x);
-           var _y = parseInt(finalEmptyCoords[_idx].y);
-           if (finalEmptyCoords[_idx].forPlayer === 0) {
-             SELF['blackTurf'][_x + ',' + _y] = 1;
-           } else if (finalEmptyCoords[_idx].forPlayer === 1) {
-             SELF['whiteTurf'][_x + ',' + _y] = 1;
-           }
-         }
+      SELF.blackTurf = {};
+      SELF.whiteTurf = {};
 
+      for (var ___idx in finalEmptyCoords) {
+        var ___x = parseInt(finalEmptyCoords[___idx].x);
+        var ___y = parseInt(finalEmptyCoords[___idx].y);
+        if (finalEmptyCoords[___idx].forPlayer === 0) {
+          SELF.blackTurf[___x + ',' + ___y] = 1;
+        } else if (finalEmptyCoords[___idx].forPlayer === 1) {
+          SELF.whiteTurf[___x + ',' + ___y] = 1;
+        }
+      }
 
-         SELF['dataChangedCallback']();
 
-         return [
-           turfFor0, turfFor1
-         ];
+      SELF.dataChangedCallback();
 
-       };
+      return [
+        turfFor0, turfFor1
+      ];
 
-       SELF['toggleTurfCount'] = function() {
+    };
 
-         SELF['turfIsVisible'] = !SELF['turfIsVisible'];
+    SELF.toggleTurfCount = function() {
 
-         if (SELF['turfIsVisible']) {
-           SELF['attemptToCalculateAndAssignScores']();
-         } else {
-           SELF['dataChangedCallback']();
-         }
+      SELF.turfIsVisible = !SELF.turfIsVisible;
 
-       };
+      if (SELF.turfIsVisible) {
+        SELF.attemptToCalculateAndAssignScores();
+      } else {
+        SELF.dataChangedCallback();
+      }
 
-       SELF['init'] = function() {
+    };
 
-         SELF['boardStruct'] = SELF['createEmptyBoardStruct']();
+    SELF.init = function() {
 
-         SELF['blackPrisoners'] = 0;
-         SELF['whitePrisoners'] = 0;
-         SELF['currentPlayer'] = 0;
-         SELF['lastPosition'] = {};
+      SELF.boardStruct = SELF.createEmptyBoardStruct();
 
-         SELF['playedPositions'] = [];
-         SELF['lastPrisonersTaken'] = [];
+      SELF.blackPrisoners = 0;
+      SELF.whitePrisoners = 0;
+      SELF.currentPlayer = 0;
+      SELF.lastPosition = {};
 
-         SELF['whiteTurf'] = 0;
-         SELF['blackTurf'] = 0;
+      SELF.playedPositions = [];
+      SELF.lastPrisonersTaken = [];
 
-         SELF['movers'] = {};
+      SELF.whiteTurf = 0;
+      SELF.blackTurf = 0;
 
-         if (!SELF['initted']) {
+      SELF.movers = {};
 
-           window.onblur = SELF['handleOnBlur'];
-           window.onfocus = SELF['handleOnFocus'];
+      if (!SELF.initted) {
 
-         }
+        window.onblur = SELF.handleOnBlur;
+        window.onfocus = SELF.handleOnFocus;
 
-         SELF['initted'] = true;
+      }
 
-       };
+      SELF.initted = true;
 
-       SELF['init']();
+    };
 
-       return SELF;
-     };
+    SELF.init();
 
-     window.CREATE_GO = CREATE_GO;
+    return SELF;
+  };
 
-   }());
+  window.CREATE_GO = CREATE_GO;
+
+}());
