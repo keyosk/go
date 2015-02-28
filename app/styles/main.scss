@@ -293,12 +293,9 @@ body.currentPlayerBlack #game table tr td div:hover {
   background-color: rgba(0, 0, 0, .5);
   cursor: pointer;
 }
-
 #game table tr td div:hover span {
-  color: orange;
+  color: brown;
 }
-
-
 /* right, bottom > column of numbers */
 
 #game table tr td:nth-last-child(1),

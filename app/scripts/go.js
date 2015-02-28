@@ -413,7 +413,8 @@
     SELF.processPubNubPayload = function(m, forHistory) {
       if ('type' in m) {
 
-        if (!forHistory && SELF.focused === false) {
+        // if (!forHistory && SELF.focused === false) {
+          if (!forHistory) {
           window.sounds.play('chat');
         }
 
