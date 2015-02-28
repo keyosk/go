@@ -35,9 +35,9 @@ var sounds = (function() {
         p.attr(audio, 'autoplay', 'true');
 
         audio.innerHTML = p.supplant(
-          '<source src="/sounds/{file}.wav">' +
-          '<source src="/sounds/{file}.ogg">' +
-          '<source src="/sounds/{file}.mp3">"', {
+          '<source src="sounds/{file}.wav">' +
+          '<source src="sounds/{file}.ogg">' +
+          '<source src="sounds/{file}.mp3">"', {
             file: sound
           }
         );
