@@ -2,9 +2,9 @@
 
 /**
  * @ngdoc function
- * @name gonubApp.controller:AboutCtrl
+ * @name gonubApp.controller:GameCtrl
  * @description
- * # AboutCtrl
+ * # GameCtrl
  * Controller of the gonubApp
  */
 angular.module('gonubApp')
@@ -20,6 +20,7 @@ angular.module('gonubApp')
     };
 
     var lobbyName = randomString(5);
+
     var boardSize = 9;
 
     var historyPlayBackSpeed = ('historyPlayBackSpeed' in $routeParams) ? $routeParams.historyPlayBackSpeed : 0;
@@ -170,6 +171,23 @@ angular.module('gonubApp')
 
     };
 
+    var handleMessagesRecursively = function(messages) {
+      if (messages.length === 0) {
+        return;
+      }
+      var message = messages.shift();
+
+      $scope.$apply(function() {
+
+        Go.processPubNubPayload(message, true);
+
+      });
+
+      setTimeout(function() {
+        handleMessagesRecursively(messages);
+      }, historyPlayBackSpeed);
+    };
+
     getAllHistory({
       'channel': pubnubDataChannel,
       'callback': function(messages) {
@@ -180,7 +198,6 @@ angular.module('gonubApp')
 
           if (historyPlayBackSpeed === 0) {
 
-
             $scope.$apply(function() {
               for (var idx in messages) {
                 Go.processPubNubPayload(messages[idx], true);
@@ -190,29 +207,13 @@ angular.module('gonubApp')
 
           } else {
 
-            var handleMessagesRecursively = function() {
-              if (messages.length === 0) {
-                return;
-              }
-              var message = messages.shift();
-
-              $scope.$apply(function() {
-
-                Go.processPubNubPayload(message, true);
-
-              });
-
-              setTimeout(handleMessagesRecursively, historyPlayBackSpeed);
-            };
-
-            handleMessagesRecursively();
+            handleMessagesRecursively(messages);
 
           }
 
         }
 
-      },
-      'error': function() {}
+      }
     });
 
     pubnubInstance.subscribe({
