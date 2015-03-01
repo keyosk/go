@@ -19,10 +19,10 @@
   </div>
 </div> -->
 
-<div class="col-sm-12 currentPlayer{{currentPlayerColor}}">
+<div class="col-sm-12 currentPlayer{{ Go.getColorClass(Go.currentPlayer) }}">
 
   <div class="row">
-    <a href="" ng-click="toggleTurfCount()">{{ turfIsVisible ? 'Disable' : 'Enable' }} Turf Counting</a>
+    <a href="" ng-click="Go.toggleTurfCount()">{{ Go.turfIsVisible ? 'Disable' : 'Enable' }} Turf Counting</a>
   </div>
 
   <div class="row">
@@ -34,48 +34,48 @@
 
           <div class="score black">
             <div class="piece">
-              <p ng-if="turfIsVisible">
-                {{ (whitePrisoners || 0) + (blackTurfCount || 0) }}
+              <p ng-if="Go.turfIsVisible">
+                {{ (Go.whitePrisoners || 0) + (Go.blackTurfCount || 0) }}
               </p>
-              <p ng-if="!turfIsVisible">
-                {{ (whitePrisoners || 0) }}
+              <p ng-if="!Go.turfIsVisible">
+                {{ (Go.whitePrisoners || 0) }}
               </p>
             </div>
             <div id="score_black">
-              <p ng-if="turfIsVisible" class="subscore">
-                Prisoners: {{ whitePrisoners || 0 }}
+              <p ng-if="Go.turfIsVisible" class="subscore">
+                Prisoners: {{ Go.whitePrisoners || 0 }}
               </p>
-              <p ng-if="turfIsVisible" class="subscore">
-                Turf: {{ blackTurfCount || 0 }}
+              <p ng-if="Go.turfIsVisible" class="subscore">
+                Turf: {{ Go.blackTurfCount || 0 }}
               </p>
             </div>
           </div>
 
           <div class="clearfix actions">
-            <a href="javascript:void(0);" id="pass" onclick="GO.passCallback();">
+            <a href="javascript:void(0);" id="pass" ng-click="pass()">
               <div class="pass">pass</div>
             </a>
 
-            <a href="javascript:void(0);" id="undo" onclick="GO.undoCallback();">
+            <a href="javascript:void(0);" id="undo" ng-click="undo()">
               <div class="pass">undo</div>
             </a>
           </div>
 
           <div class="score white">
             <div class="piece">
-              <p ng-if="turfIsVisible">
-                {{ (blackPrisoners || 0) + (whiteTurfCount || 0) }}
+              <p ng-if="Go.turfIsVisible">
+                {{ (Go.blackPrisoners || 0) + (Go.whiteTurfCount || 0) }}
               </p>
-              <p ng-if="!turfIsVisible">
-                {{ (blackPrisoners || 0) }}
+              <p ng-if="!Go.turfIsVisible">
+                {{ (Go.blackPrisoners || 0) }}
               </p>
             </div>
             <divs id="score_black">
-              <p ng-if="turfIsVisible" class="subscore">
-                Prisoners: {{ blackPrisoners || 0 }}
+              <p ng-if="Go.turfIsVisible" class="subscore">
+                Prisoners: {{ Go.blackPrisoners || 0 }}
               </p>
-              <p ng-if="turfIsVisible" class="subscore">
-                Turf: {{ whiteTurfCount || 0 }}
+              <p ng-if="Go.turfIsVisible" class="subscore">
+                Turf: {{ Go.whiteTurfCount || 0 }}
               </p>
           </div>
         </div>
@@ -84,10 +84,10 @@
 
       <div id="played_positions">
 
-        <div ng-repeat="(idx, value) in playedPositions.slice().reverse() track by $index" class="feed_item" ng-class="{ undone: (value.undid == true) }">
+        <div ng-repeat="(idx, value) in Go.playedPositions.slice().reverse() track by $index" class="feed_item" ng-class="{ undone: (value.undid == true) }">
           <div class="player" ng-class="{'white': (value.forPlayer == 1), 'black': (value.forPlayer == 0)}">
             <div class="index">
-              {{ playedPositions.length - idx }}.
+              {{ Go.playedPositions.length - idx }}.
             </div>
             <div class="piece"></div>
           </div>
@@ -111,8 +111,8 @@
       <div id="game">
 
         <table>
-          <tr ng-repeat="(x, value) in boardStruct track by $index">
-            <td ng-class="{White: (forPlayer == 1), Black: (forPlayer == 0), lastPiecePlayed: (lastPosition.x == x && lastPosition.y == y), 'blackTurf': (turfIsVisible && blackTurf[(x+','+y)] == 1), 'whiteTurf': (turfIsVisible && whiteTurf[(x+','+y)] == 1) }" ng-repeat="(y, forPlayer) in value track by $index">
+          <tr ng-repeat="(x, value) in Go.boardStruct track by $index">
+            <td ng-class="{White: (forPlayer == 1), Black: (forPlayer == 0), lastPiecePlayed: (Go.lastPosition.x == x && Go.lastPosition.y == y), 'blackTurf': (Go.turfIsVisible && Go.blackTurf[(x+','+y)] == 1), 'whiteTurf': (Go.turfIsVisible && Go.whiteTurf[(x+','+y)] == 1) }" ng-repeat="(y, forPlayer) in value track by $index">
               <div ng-click="moveTo(x, y)" title="{{ x+1 }},{{ y+1 }}"><span>{{ x+1 }},{{ y+1 }}</span>
               </div>
             </td>

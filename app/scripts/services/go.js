@@ -1,12 +1,17 @@
 'use strict';
 
-(function() {
+/**
+ * @ngdoc service
+ * @name gonubApp.Go
+ * @description
+ * # Go
+ * Service in the gonubApp.
+ */
+angular.module('gonubApp')
+  .service('Go', function() {
+    // AngularJS will instantiate a singleton by calling "new" on this function
 
-  var CREATE_GO = function(setup) {
-
-    var SELF = function(setup) {
-      return CREATE_GO(setup);
-    };
+    var SELF = {};
 
     var findLibertyRecurseSafety = 0;
 
@@ -18,20 +23,18 @@
 
     SELF.focused = true;
 
-
-    SELF.lobbyName = setup.lobbyName;
-    SELF.boardSize = setup.boardSize;
-
-    SELF.pubnubUUID = setup.pubnubUUID;
-
-    SELF.clickCallback = setup.clickCallback;
-    SELF.passCallback = setup.passCallback;
-    SELF.undoCallback = setup.undoCallback;
-    SELF.dataChangedCallback = setup.dataChangedCallback;
-
     SELF.playedPositions = [];
 
     SELF.lastPrisonersTaken = [];
+
+    SELF.whiteTurf = {};
+    SELF.blackTurf = {};
+    SELF.whiteTurfCount = 0;
+    SELF.blackTurfCount = 0;
+
+    SELF.currentPlayer = 0;
+    SELF.lastPosition = {};
+
 
     SELF.getOppositePlayer = function(forPlayer) {
       return (forPlayer === 0) ? 1 : 0;
@@ -128,6 +131,7 @@
         }
 
         if (recaptureFound) {
+
           // console.log('lastOwner', lastOwner);
           // console.log('lastX', lastX);
           // console.log('lastY', lastY);
@@ -369,8 +373,6 @@
 
       SELF.switchCurrentPlayer();
 
-
-
       return true;
     };
 
@@ -599,8 +601,8 @@
         }
       }
 
-
-      SELF.dataChangedCallback();
+      SELF.blackTurfCount = Object.keys(SELF.blackTurf).length;
+      SELF.whiteTurfCount = Object.keys(SELF.whiteTurf).length;
 
       return [
         turfFor0, turfFor1
@@ -614,13 +616,17 @@
 
       if (SELF.turfIsVisible) {
         SELF.attemptToCalculateAndAssignScores();
-      } else {
-        SELF.dataChangedCallback();
       }
 
     };
 
-    SELF.init = function() {
+    SELF.init = function(setup) {
+
+      if (setup) {
+        SELF.lobbyName = setup.lobbyName;
+        SELF.boardSize = setup.boardSize;
+        SELF.pubnubUUID = setup.pubnubUUID;
+      }
 
       SELF.boardStruct = SELF.createEmptyBoardStruct();
 
@@ -632,8 +638,10 @@
       SELF.playedPositions = [];
       SELF.lastPrisonersTaken = [];
 
-      SELF.whiteTurf = 0;
-      SELF.blackTurf = 0;
+      SELF.whiteTurf = {};
+      SELF.blackTurf = {};
+      SELF.whiteTurfCount = 0;
+      SELF.blackTurfCount = 0;
 
       SELF.movers = {};
 
@@ -646,13 +654,10 @@
 
       SELF.initted = true;
 
+      return SELF;
+
     };
 
-    SELF.init();
-
     return SELF;
-  };
 
-  window.CREATE_GO = CREATE_GO;
-
-}());
+  });

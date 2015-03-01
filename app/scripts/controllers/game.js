@@ -8,7 +8,7 @@
  * Controller of the gonubApp
  */
 angular.module('gonubApp')
-  .controller('GameCtrl', function($scope, $log, $routeParams, $location) {
+  .controller('GameCtrl', function($scope, $log, $routeParams, $location, Go) {
 
     var randomString = function(len) {
       var text = '';
@@ -54,81 +54,87 @@ angular.module('gonubApp')
 
     var pubnubDataChannel = 'go-game-' + VERSION + '-' + lobbyName + '-' + boardSize;
 
-    var GO = window.CREATE_GO({
-      'containerEle': document.getElementById('game'),
+    Go.init({
       'lobbyName': lobbyName,
       'boardSize': boardSize,
-      'pubnubUUID': pubnubUUID,
-      'dataChangedCallback': function() {
-        $scope.boardStruct = GO.boardStruct;
-        $scope.playedPositions = GO.playedPositions;
-        $scope.currentPlayer = GO.currentPlayer;
-        $scope.currentPlayerColor = GO.getColorClass(GO.currentPlayer);
-        $scope.lastPosition = GO.lastPosition;
-        $scope.whiteTurf = GO.whiteTurf;
-        $scope.blackTurf = GO.blackTurf;
-        $scope.whiteTurfCount = Object.keys(GO.whiteTurf).length;
-        $scope.blackTurfCount = Object.keys(GO.blackTurf).length;
-        $scope.whitePrisoners = GO.whitePrisoners;
-        $scope.blackPrisoners = GO.blackPrisoners;
-        $scope.turfIsVisible = GO.turfIsVisible;
-        $scope.toggleTurfCount = GO.toggleTurfCount;
-      },
-      'clickCallback': function(x, y, forPlayer) {
+      'pubnubUUID': pubnubUUID
+    });
+
+    $scope.Go = Go;
+
+    $scope.moveTo = function(x, y) {
+      var forPlayer = Go.currentPlayer;
+
+      if (Go.movers[forPlayer] && Go.movers[forPlayer] !== Go.pubnubUUID) {
+        window.alert('That piece belongs to someone else.');
+        return;
+      }
+
+      var result = Go.moveStoneToXY(Go.currentPlayer, x, y);
+
+      if (result) {
+        Go.cachePlayedPosition({
+          'type': 'move',
+          'forPlayer': forPlayer,
+          'x': x,
+          'y': y
+        });
         pubnubInstance.publish({
           'channel': pubnubDataChannel,
           'message': {
             'type': 'move',
-            'forPlayer': forPlayer,
+            'forPlayer': Go.getOppositePlayer(Go.currentPlayer),
             'x': x,
             'y': y,
             'pubnubUUID': pubnubUUID,
             'time': (new Date().getTime())
           }
         });
-      },
-      'passCallback': function() {
-        if (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] !== pubnubUUID) {
-          window.alert('You are not allowed to pass for another player.');
-          return;
-        }
-
-        if (window.confirm('Are you sure you want to Pass?')) {
-          pubnubInstance.publish({
-            'channel': pubnubDataChannel,
-            'message': {
-              'type': 'pass',
-              'forPlayer': GO.currentPlayer,
-              'pubnubUUID': pubnubUUID,
-              'time': (new Date().getTime())
-            }
-          });
-        }
-      },
-      'undoCallback': function() {
-        var currentPlayerIsYou = (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] === pubnubUUID);
-        var oppositePlayerIsYou = (GO.movers[GO.getOppositePlayer(GO.currentPlayer)] && GO.movers[GO.getOppositePlayer(GO.currentPlayer)] === pubnubUUID);
-
-        if (currentPlayerIsYou === true && oppositePlayerIsYou === false) {
-          window.alert('You are only allowed to undo your own move.');
-          return;
-        }
-
-        if (window.confirm('Are you sure you want to Undo?')) {
-          pubnubInstance.publish({
-            'channel': pubnubDataChannel,
-            'message': {
-              'type': 'undo',
-              'forPlayer': GO.getOppositePlayer(GO.currentPlayer),
-              'pubnubUUID': pubnubUUID,
-              'time': (new Date().getTime())
-            }
-          });
-        }
       }
-    });
+    };
 
-    window.GO = GO;
+
+
+    $scope.pass = function() {
+      if (Go.movers[Go.currentPlayer] && Go.movers[Go.currentPlayer] !== pubnubUUID) {
+        window.alert('You are not allowed to pass for another player.');
+        return;
+      }
+
+      if (window.confirm('Are you sure you want to Pass?')) {
+        pubnubInstance.publish({
+          'channel': pubnubDataChannel,
+          'message': {
+            'type': 'pass',
+            'forPlayer': Go.currentPlayer,
+            'pubnubUUID': pubnubUUID,
+            'time': (new Date().getTime())
+          }
+        });
+      }
+    };
+
+    $scope.undo = function() {
+      var currentPlayerIsYou = (Go.movers[Go.currentPlayer] && Go.movers[Go.currentPlayer] === pubnubUUID);
+      var oppositePlayerIsYou = (Go.movers[Go.getOppositePlayer(Go.currentPlayer)] && Go.movers[Go.getOppositePlayer(Go.currentPlayer)] === pubnubUUID);
+
+      if (currentPlayerIsYou === true && oppositePlayerIsYou === false) {
+        window.alert('You are only allowed to undo your own move.');
+        return;
+      }
+
+      if (window.confirm('Are you sure you want to Undo?')) {
+        pubnubInstance.publish({
+          'channel': pubnubDataChannel,
+          'message': {
+            'type': 'undo',
+            'forPlayer': Go.getOppositePlayer(Go.currentPlayer),
+            'pubnubUUID': pubnubUUID,
+            'time': (new Date().getTime())
+          }
+        });
+      }
+    };
 
     var getAllHistory = function(args) {
 
@@ -164,47 +170,21 @@ angular.module('gonubApp')
 
     };
 
-    $scope.moveTo = function(x, y) {
-      var forPlayer = GO.currentPlayer;
-
-      if (GO.movers[forPlayer] && GO.movers[forPlayer] !== GO.pubnubUUID) {
-        window.alert('That piece belongs to someone else.');
-        return;
-      }
-
-      var result = GO.moveStoneToXY(GO.currentPlayer, x, y);
-      if (result) {
-        GO.cachePlayedPosition({
-          'type': 'move',
-          'forPlayer': forPlayer,
-          'x': x,
-          'y': y
-        });
-        if ('function' === typeof GO.clickCallback) {
-          GO.clickCallback(x, y, GO.getOppositePlayer(GO.currentPlayer));
-        }
-      }
-    };
-
-    GO.dataChangedCallback();
-
     getAllHistory({
       'channel': pubnubDataChannel,
       'callback': function(messages) {
 
         if (messages.length) {
 
-          messages = GO.rollBackHistoryUsingUndo(messages);
+          messages = Go.rollBackHistoryUsingUndo(messages);
 
           if (historyPlayBackSpeed === 0) {
 
-            for (var idx in messages) {
-              GO.processPubNubPayload(messages[idx], true);
-            }
 
             $scope.$apply(function() {
-
-              GO.dataChangedCallback();
+              for (var idx in messages) {
+                Go.processPubNubPayload(messages[idx], true);
+              }
 
             });
 
@@ -215,11 +195,10 @@ angular.module('gonubApp')
                 return;
               }
               var message = messages.shift();
-              GO.processPubNubPayload(message, true);
 
               $scope.$apply(function() {
 
-                GO.dataChangedCallback();
+                Go.processPubNubPayload(message, true);
 
               });
 
@@ -239,11 +218,8 @@ angular.module('gonubApp')
     pubnubInstance.subscribe({
       'channel': pubnubDataChannel,
       'callback': function(m) {
-        GO.processPubNubPayload(m, false);
         $scope.$apply(function() {
-
-          GO.dataChangedCallback();
-
+          Go.processPubNubPayload(m, false);
         });
       }
     });
