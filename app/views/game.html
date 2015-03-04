@@ -1,36 +1,17 @@
-<!-- <div id="nav">
-  <div class="container">
-    <div id="logo">
-      <h1><a href="" title="gonub">gonub</a></h1>
-    </div>
-    <div id="lastPositionHolder">
-      <div>
-        Turn: <span id="current_player">Black</span>
-      </div>
-    </div>
-    <div id="lobby">
-      <div>
-        Lobby :
-        <a id="lobby_name_link" href="javascript:void(0)" target="_blank"></a>
-      </div>
-      <div>
-      </div>
-    </div>
-  </div>
-</div> -->
-
 <div class="col-sm-12 currentPlayer{{ Go.getColorClass(Go.currentPlayer) }}">
-
-  <div class="row">
-    <a href="" ng-click="Go.toggleTurfCount()">{{ Go.turfIsVisible ? 'Disable' : 'Enable' }} Turf Counting</a>
-  </div>
 
   <div class="row">
 
     <div class="col-sm-3">
+
       <div id="meta">
 
         <div class="scoring">
+
+          <div id="toggleCountBox">
+            <input id="toggleCount" type="checkbox" ng-checked="Go.turfIsVisible" ng-click="Go.toggleTurfCount()" />
+            <label for="toggleCount">{{ Go.turfIsVisible ? 'Disable' : 'Enable' }} Scoring</label>
+          </div>
 
           <div class="score black">
             <div class="piece">
@@ -107,6 +88,7 @@
       </div>
 
     </div>
+
     <div class="col-sm-9">
       <div id="game">
 

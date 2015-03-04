@@ -48,6 +48,16 @@
 #played_positions .feed_item .player.white .piece {
   background: #fff;
 }
+#toggleCountBox {
+  background: #7B7B7B;
+  text-align: center;
+  font-size: 12px;
+  padding-top: 4px;
+  color: white;
+  input, label {
+    cursor: pointer;
+  }
+}
 .score {
   background: #7B7B7B;
   text-align: center;
@@ -117,6 +127,39 @@ p.subscore {
 .undone div,
 .undone div {
   text-decoration: line-through
+}
+@media (max-width: 767px) {
+  #played_positions {
+    margin-left: 16px;
+  }
+  #toggleCountBox {
+    width: 249px;
+  }
+  #played_positions,
+  #meta {
+    float: left;
+    margin: 0px;
+    height: 150px;
+    width: 250px;
+  }
+  #meta .scoring {
+    .score, .actions {
+      background: #7B7B7B;
+      overflow: hidden;
+      float: left;
+      height: 122px;
+      width: 83px;
+      .subscore {
+        font-size: 11px;
+      }
+    }
+    .pass {
+      float: none;
+      width: 83px;
+      border: 1px solid #b3b3b3;
+      border-top: 0px;
+    }
+  }
 }
 #game {
   overflow: hidden;
