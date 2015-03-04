@@ -138,16 +138,6 @@ p.subscore {
   user-select: none;
   margin-right: 15px;
 }
-#game table tr td.blackTurf div {
-  background-color: rgba(0, 0, 0, 0.4) !important;
-  -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
-  box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
-}
-#game table tr td.whiteTurf div {
-  background-color: rgba(255, 255, 255, 0.4) !important;
-  -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
-  box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
-}
 #game table tr td {
   border: 2px solid brown;
   padding: 0px;
@@ -165,6 +155,16 @@ p.subscore {
   left: -21px;
   text-align: center;
 }
+#game table tr td.blackTurf div {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+  box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+}
+#game table tr td.whiteTurf div {
+  background-color: rgba(255, 255, 255, 0.4) !important;
+  -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+  box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+}
 #game table tr td.Black div {
   background-color: black !important;
   -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
@@ -174,6 +174,27 @@ p.subscore {
   background-color: white !important;
   -webkit-box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
   box-shadow: 0 0px 2px 0px rgba(0, 0, 0, .7);
+}
+#game table tr td.lastPiecePlayed div:hover span {
+  color: transparent !important;
+}
+#game table tr td.blackTurf div:hover span {
+  color: white !important;
+}
+.currentPlayerBlack #game table tr td.Black div:hover span,
+.currentPlayerBlack #game table tr td.blackTurf div:hover span,
+.currentPlayerWhite #game table tr td.Black div:hover span,
+.currentPlayerWhite #game table tr td.blackTurf div:hover span {
+  color: white;
+}
+#game table tr td.whiteTurf div:hover span {
+  color: black !important;
+}
+.currentPlayerBlack #game table tr td.White div:hover span,
+.currentPlayerBlack #game table tr td.whiteTurf div:hover span,
+.currentPlayerWhite #game table tr td.White div:hover span,
+.currentPlayerWhite #game table tr td.whiteTurf div:hover span {
+  color: black;
 }
 #game table tr td.lastPiecePlayed div:before {
   content: "";
@@ -210,20 +231,19 @@ p.subscore {
   letter-spacing: 1px;
   font-weight: 500;
 }
-#game table tr td.lastPiecePlayed div:hover span {
-  color: transparent !important;
-}
 .currentPlayerWhite #game table tr td div:hover {
   background-color: rgba(255, 255, 255, .5);
   cursor: pointer;
+  span {
+    color: black;
+  }
 }
-body #game table tr td div:hover,
-body.currentPlayerBlack #game table tr td div:hover {
+.currentPlayerBlack #game table tr td div:hover {
   background-color: rgba(0, 0, 0, .5);
   cursor: pointer;
-}
-#game table tr td div:hover span {
-  color: brown;
+  span {
+    color: white;
+  }
 }
 /* right, bottom > column of numbers */
 

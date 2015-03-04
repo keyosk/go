@@ -461,7 +461,7 @@ angular.module('gonubApp')
               //Only allow a pass on your own turn
             } else {
               var lastPosition = SELF.playedPositions[SELF.playedPositions.length - 1];
-              if (lastPosition.type === 'pass') {
+              if (lastPosition && lastPosition.type === 'pass') {
                 SELF.turfIsVisible = true;
                 SELF.attemptToCalculateAndAssignScores();
               }
