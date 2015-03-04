@@ -129,9 +129,6 @@ p.subscore {
   text-decoration: line-through
 }
 @media (max-width: 767px) {
-  #played_positions {
-    margin-left: 16px;
-  }
   #toggleCountBox {
     width: 249px;
   }
@@ -140,7 +137,10 @@ p.subscore {
     float: left;
     margin: 0px;
     height: 150px;
-    width: 250px;
+    width: 222px;
+  }
+  #played_positions {
+    width: 100px;
   }
   #meta .scoring {
     .score, .actions {
@@ -148,14 +148,14 @@ p.subscore {
       overflow: hidden;
       float: left;
       height: 122px;
-      width: 83px;
+      width: 74px;
       .subscore {
         font-size: 11px;
       }
     }
     .pass {
       float: none;
-      width: 83px;
+      width: 74px;
       border: 1px solid #b3b3b3;
       border-top: 0px;
     }
