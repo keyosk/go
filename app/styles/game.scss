@@ -301,6 +301,7 @@ p.subscore {
 #game table tr:nth-last-child(1) td:nth-child(1):before,
 #game table tr:nth-last-child(1) td:nth-last-child(1):before {
   content: "1";
+  margin-left: 2px;
 }
 #game table tr:nth-last-child(2) td:nth-child(1):before,
 #game table tr:nth-last-child(2) td:nth-last-child(1):before {
@@ -451,4 +452,8 @@ p.subscore {
 #game table tr:nth-last-child(1) td:nth-child(19):after,
 #game table tr:nth-child(1) td:nth-child(19):after {
   content: "S";
+}
+#game table tr:nth-last-child(1) td:nth-last-child(1):after,
+#game table tr:nth-child(1) td:nth-last-child(1):after {
+  margin-top: 1px;
 }
