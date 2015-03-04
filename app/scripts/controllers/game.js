@@ -63,6 +63,19 @@ angular.module('gonubApp')
 
     $scope.Go = Go;
 
+    $scope.getColumnIDFromY = function(y) {
+      var alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+      return alphabet[y];
+    };
+
+    $scope.getColumnIDFromX = function(x) {
+      return boardSize - x;
+    };
+
+    $scope.getFormattedCoord = function(x, y) {
+      return $scope.getColumnIDFromY(y) + $scope.getColumnIDFromX(x);
+    }
+
     $scope.moveTo = function(x, y) {
       var forPlayer = Go.currentPlayer;
 

@@ -94,7 +94,7 @@
           <div class="info">
             <div class="time"></div>
             <div class="coords" ng-if="value.type === 'move'">
-              {{ value.x+1 }}, {{ value.y+1 }}
+              {{ getFormattedCoord(value.x, value.y) }}
             </div>
             <div class="undo" ng-if="value.type === 'undo'">
               UNDO
@@ -113,7 +113,7 @@
         <table>
           <tr ng-repeat="(x, value) in Go.boardStruct track by $index">
             <td ng-class="{White: (forPlayer == 1), Black: (forPlayer == 0), lastPiecePlayed: (Go.lastPosition.x == x && Go.lastPosition.y == y), 'blackTurf': (Go.turfIsVisible && Go.blackTurf[(x+','+y)] == 1), 'whiteTurf': (Go.turfIsVisible && Go.whiteTurf[(x+','+y)] == 1) }" ng-repeat="(y, forPlayer) in value track by $index">
-              <div ng-click="moveTo(x, y)" title="{{ x+1 }},{{ y+1 }}"><span>{{ x+1 }},{{ y+1 }}</span>
+              <div ng-click="moveTo(x, y)" title="{{ getFormattedCoord(x, y) }}"><span>{{ getFormattedCoord(x, y) }}</span>
               </div>
             </td>
           </tr>
