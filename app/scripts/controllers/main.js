@@ -39,7 +39,7 @@ angular.module('gonubApp')
               item.channel = channel;
               return channel.indexOf(pubnubDataChannelPrefix) === 0;
             });
-            getGamesListTimeout = $timeout(getGamesList, 5000);
+            getGamesListTimeout = $timeout(getGamesList, 6000);
           });
         }
       });
