@@ -1,11 +1,13 @@
 <div id="lobby">
   <div class="well">
-    <p> Games List: </p>
-    <div ng-if="activeChannels" ng-repeat="data in activeChannels">
-      <p>Game In Progress With {{data.occupancy}} People <a ng-href="#/game/{{ getLobbyNameFromChannel(data.channel) }}/{{ getLobbySizeFromChannel(data.channel) }}/">{{ getLobbyNameFromChannel(data.channel) }} (Board Size : {{ getLobbySizeFromChannel(data.channel) }})</a>
+    <div ng-if="activeChannels && activeChannels.length" ng-repeat="data in activeChannels">
+      <p>Game In Progress With {{data.occupancy}} People <a ng-href="#/game/{{ getLobbyNameFromChannel(data.channel) }}/{{ getLobbySizeFromChannel(data.channel) }}/">{{ getLobbyNameFromChannel(data.channel) }} (Board Size : {{ getLobbySizeFromChannel(data.channel) }}x{{ getLobbySizeFromChannel(data.channel) }})</a>
+    </div>
+    <div ng-if="activeChannels && !activeChannels.length">
+      No Games in Progress
     </div>
     <div ng-if="!activeChannels">
-      Loading...
+      Loading Games List...
     </div>
   </div>
 </div>

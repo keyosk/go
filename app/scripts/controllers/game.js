@@ -74,7 +74,7 @@ angular.module('gonubApp')
 
     $scope.getFormattedCoord = function(x, y) {
       return $scope.getColumnIDFromY(y) + $scope.getColumnIDFromX(x);
-    }
+    };
 
     $scope.moveTo = function(x, y) {
       var forPlayer = Go.currentPlayer;
