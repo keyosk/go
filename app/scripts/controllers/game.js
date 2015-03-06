@@ -190,11 +190,13 @@ angular.module('gonubApp')
       }
       var message = messages.shift();
 
-      $scope.$apply(function() {
-
+      try {
+        $scope.$apply(function() {
+          Go.processPubNubPayload(message, true);
+        });
+      } catch (e) {
         Go.processPubNubPayload(message, true);
-
-      });
+      }
 
       setTimeout(function() {
         handleMessagesRecursively(messages);
@@ -211,12 +213,17 @@ angular.module('gonubApp')
 
           if (historyPlayBackSpeed === 0) {
 
-            $scope.$apply(function() {
+            try {
+              $scope.$apply(function() {
+                for (var idx in messages) {
+                  Go.processPubNubPayload(messages[idx], true);
+                }
+              });
+            } catch (e) {
               for (var idx in messages) {
                 Go.processPubNubPayload(messages[idx], true);
               }
-
-            });
+            }
 
           } else {
 
@@ -232,9 +239,13 @@ angular.module('gonubApp')
     pubnubInstance.subscribe({
       'channel': pubnubDataChannel,
       'callback': function(m) {
-        $scope.$apply(function() {
+        try {
+          $scope.$apply(function() {
+            Go.processPubNubPayload(m, false);
+          });
+        } catch (e) {
           Go.processPubNubPayload(m, false);
-        });
+        }
       }
     });
 

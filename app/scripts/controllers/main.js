@@ -23,12 +23,16 @@ angular.module('gonubApp')
 
     $scope.activeChannels = false;
 
+    var getPartsFromChannel = function(channel) {
+      return channel.substr(pubnubDataChannelPrefix.length).split('-');
+    };
+
     $scope.getLobbyNameFromChannel = function(channel) {
-      return channel.substr(pubnubDataChannelPrefix.length).split('-')[0];
+      return getPartsFromChannel(channel)[0];
     };
 
     $scope.getLobbySizeFromChannel = function(channel) {
-      return channel.substr(pubnubDataChannelPrefix.length).split('-')[1];
+      return getPartsFromChannel(channel)[1];
     };
 
     var getGamesList = function() {
