@@ -8,7 +8,7 @@
  * Controller of the gonubApp
  */
 angular.module('gonubApp')
-  .controller('GameCtrl', function($scope, $log, $routeParams, $location, Go) {
+  .controller('GameCtrl', function($rootScope, $scope, $log, $routeParams, $location, Go) {
 
     var randomString = function(len) {
       var text = '';
@@ -84,51 +84,100 @@ angular.module('gonubApp')
         return;
       }
 
-      var result = Go.moveStoneToXY(Go.currentPlayer, x, y);
+      $rootScope.loading = true;
+      var result = Go.moveStoneToXY(forPlayer, x, y, pubnubUUID);
 
       if (result) {
-        Go.cachePlayedPosition({
-          'type': 'move',
-          'forPlayer': forPlayer,
-          'x': x,
-          'y': y
-        });
         pubnubInstance.publish({
           'channel': pubnubDataChannel,
           'message': {
             'type': 'move',
-            'forPlayer': Go.getOppositePlayer(Go.currentPlayer),
+            'forPlayer': forPlayer,
             'x': x,
             'y': y,
             'pubnubUUID': pubnubUUID,
             'time': (new Date().getTime())
+          },
+          'callback': function() {
+            try {
+              $scope.$apply(function() {
+                $rootScope.loading = false;
+              });
+            } catch (e) {
+              $rootScope.loading = false;
+            }
+          },
+          'error': function() {
+            try {
+              $scope.$apply(function() {
+                $rootScope.loading = false;
+              });
+            } catch (e) {
+              $rootScope.loading = false;
+            }
           }
         });
+      } else {
+        $rootScope.loading = false;
       }
     };
 
 
 
     $scope.pass = function() {
-      if (Go.movers[Go.currentPlayer] && Go.movers[Go.currentPlayer] !== pubnubUUID) {
+      var forPlayer = Go.currentPlayer;
+
+      if (Go.movers[forPlayer] && Go.movers[forPlayer] !== pubnubUUID) {
         window.alert('You are not allowed to pass for another player.');
         return;
       }
 
       if (window.confirm('Are you sure you want to Pass?')) {
-        pubnubInstance.publish({
-          'channel': pubnubDataChannel,
-          'message': {
-            'type': 'pass',
-            'forPlayer': Go.currentPlayer,
-            'pubnubUUID': pubnubUUID,
-            'time': (new Date().getTime())
-          }
-        });
+
+        $rootScope.loading = true;
+
+        var result = Go.pass(forPlayer, pubnubUUID);
+
+        if (result) {
+
+          pubnubInstance.publish({
+            'channel': pubnubDataChannel,
+            'message': {
+              'type': 'pass',
+              'forPlayer': forPlayer,
+              'pubnubUUID': pubnubUUID,
+              'time': (new Date().getTime())
+            },
+            'callback': function() {
+              try {
+                $scope.$apply(function() {
+                  $rootScope.loading = false;
+                });
+              } catch (e) {
+                $rootScope.loading = false;
+              }
+            },
+            'error': function() {
+              try {
+                $scope.$apply(function() {
+                  $rootScope.loading = false;
+                });
+              } catch (e) {
+                $rootScope.loading = false;
+              }
+            }
+          });
+
+        } else {
+          $rootScope.loading = false;
+        }
       }
     };
 
     $scope.undo = function() {
+
+      var forPlayer = Go.getOppositePlayer(Go.currentPlayer);
+
       var currentPlayerIsYou = (Go.movers[Go.currentPlayer] && Go.movers[Go.currentPlayer] === pubnubUUID);
       var oppositePlayerIsYou = (Go.movers[Go.getOppositePlayer(Go.currentPlayer)] && Go.movers[Go.getOppositePlayer(Go.currentPlayer)] === pubnubUUID);
 
@@ -138,15 +187,42 @@ angular.module('gonubApp')
       }
 
       if (window.confirm('Are you sure you want to Undo?')) {
-        pubnubInstance.publish({
-          'channel': pubnubDataChannel,
-          'message': {
-            'type': 'undo',
-            'forPlayer': Go.getOppositePlayer(Go.currentPlayer),
-            'pubnubUUID': pubnubUUID,
-            'time': (new Date().getTime())
-          }
-        });
+        $rootScope.loading = true;
+        var result = Go.undo(forPlayer, pubnubUUID);
+
+        if (result) {
+
+          pubnubInstance.publish({
+            'channel': pubnubDataChannel,
+            'message': {
+              'type': 'undo',
+              'forPlayer': forPlayer,
+              'pubnubUUID': pubnubUUID,
+              'time': (new Date().getTime())
+            },
+            'callback': function() {
+              try {
+                $scope.$apply(function() {
+                  $rootScope.loading = false;
+                });
+              } catch (e) {
+                $rootScope.loading = false;
+              }
+            },
+            'error': function() {
+              try {
+                $scope.$apply(function() {
+                  $rootScope.loading = false;
+                });
+              } catch (e) {
+                $rootScope.loading = false;
+              }
+            }
+          });
+
+        } else {
+          $rootScope.loading = false;
+        }
       }
     };
 
@@ -207,6 +283,8 @@ angular.module('gonubApp')
       'channel': pubnubDataChannel,
       'callback': function(messages) {
 
+        $rootScope.loading = true;
+
         if (messages.length) {
 
           messages = Go.rollBackHistoryUsingUndo(messages);
@@ -232,6 +310,13 @@ angular.module('gonubApp')
           }
 
         }
+        try {
+          $scope.$apply(function() {
+            $rootScope.loading = false;
+          });
+        } catch (e) {
+          $rootScope.loading = false;
+        }
 
       }
     });
@@ -239,6 +324,9 @@ angular.module('gonubApp')
     pubnubInstance.subscribe({
       'channel': pubnubDataChannel,
       'callback': function(m) {
+        if (m && 'pubnubUUID' in m && m.pubnubUUID === pubnubUUID) {
+          return;
+        }
         try {
           $scope.$apply(function() {
             Go.processPubNubPayload(m, false);
@@ -254,5 +342,7 @@ angular.module('gonubApp')
         'channel': pubnubDataChannel
       });
     });
+
+    window.Go = Go;
 
   });

@@ -358,7 +358,7 @@ angular.module('gonubApp')
     };
 
 
-    SELF.moveStoneToXY = function(forPlayer, x, y) {
+    SELF.moveStoneToXY = function(forPlayer, x, y, pubnubUUID) {
 
       if (forPlayer !== SELF.currentPlayer) {
         // don't allow a click out of turn
@@ -371,7 +371,17 @@ angular.module('gonubApp')
         return false;
       }
 
+      SELF.movers[forPlayer] = pubnubUUID;
+
       SELF.switchCurrentPlayer();
+
+      SELF.cachePlayedPosition({
+        'type': 'move',
+        'forPlayer': forPlayer,
+        'pubnubUUID': pubnubUUID,
+        'x': x,
+        'y': y
+      });
 
       return true;
     };
@@ -432,6 +442,7 @@ angular.module('gonubApp')
     };
 
     SELF.processPubNubPayload = function(m, forHistory) {
+
       if ('type' in m) {
 
         // if (!forHistory && SELF.focused === false) {
@@ -439,58 +450,86 @@ angular.module('gonubApp')
           window.sounds.play('chat');
         }
 
-        if (m.type === 'move' && 'forPlayer' in m && 'pubnubUUID' in m && !SELF.movers[m.forPlayer]) {
-          SELF.movers[m.forPlayer] = m.pubnubUUID;
-        }
-
         if ('undid' in m) {
           SELF.cachePlayedPosition(m);
-        } else if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
+        } else if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m && 'pubnubUUID' in m) {
 
-          var result = SELF.moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
-          if (result) {
-            SELF.cachePlayedPosition(m);
-          }
-          if (!forHistory && SELF.turfIsVisible) {
+          var result = SELF.moveStoneToXY(parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y), m.pubnubUUID);
+
+          if (result && !forHistory && SELF.turfIsVisible) {
             SELF.attemptToCalculateAndAssignScores();
           }
 
-        } else if (m.type === 'pass' && 'forPlayer' in m) {
-          if (parseInt(SELF.currentPlayer) === parseInt(m.forPlayer)) {
-            if (SELF.movers[m.forPlayer] && SELF.movers[m.forPlayer] !== m.pubnubUUID) {
-              //Only allow a pass on your own turn
-            } else {
-              var lastPosition = SELF.playedPositions[SELF.playedPositions.length - 1];
-              if (lastPosition && lastPosition.type === 'pass') {
-                SELF.turfIsVisible = true;
-                SELF.attemptToCalculateAndAssignScores();
-              }
-              // if (results[0] || results[1]) {
-              //   var totalPointsBlack = parseInt(SELF.whitePrisoners) + parseInt(results[0]);
-              //   var totalPointsWhite = parseInt(SELF.blackPrisoners) + parseInt(results[1]);
-              //   if (totalPointsWhite > totalPointsBlack) {
-              //     window.alert('White Wins!');
-              //   } else if (totalPointsBlack > totalPointsWhite) {
-              //     window.alert('Black Wins!');
-              //   } else {
-              //     window.alert('Draw');
-              //   }
-              // }
-              // }
-              SELF.cachePlayedPosition(m);
-              SELF.switchCurrentPlayer();
-            }
-          }
-        } else if (m.type === 'undo') {
-          SELF.cachePlayedPosition(m);
+        } else if (m.type === 'pass' && 'forPlayer' in m && 'pubnubUUID' in m) {
+          SELF.pass(m.forPlayer, m.pubnubUUID);
+        } else if (m.type === 'undo' && 'forPlayer' in m && 'pubnubUUID' in m) {
           if (forHistory === false) {
-            SELF.undo();
+            SELF.undo(m.forPlayer, m.pubnubUUID);
+          } else {
+            SELF.cachePlayedPosition({
+              'type': 'undo',
+              'forPlayer': m.forPlayer,
+              'pubnubUUID': m.pubnubUUID
+            });
           }
         }
       }
     };
 
-    SELF.undo = function() {
+    SELF.pass = function(forPlayer, pubnubUUID) {
+
+      if (parseInt(SELF.currentPlayer) === parseInt(forPlayer)) {
+
+        if (SELF.movers[forPlayer] && SELF.movers[forPlayer] !== pubnubUUID) {
+          //Only allow a pass on your own turn
+        } else {
+
+          var lastPosition = SELF.playedPositions[SELF.playedPositions.length - 1];
+          if (lastPosition && lastPosition.type === 'pass') {
+            SELF.turfIsVisible = true;
+            SELF.attemptToCalculateAndAssignScores();
+          }
+          // if (results[0] || results[1]) {
+          //   var totalPointsBlack = parseInt(SELF.whitePrisoners) + parseInt(results[0]);
+          //   var totalPointsWhite = parseInt(SELF.blackPrisoners) + parseInt(results[1]);
+          //   if (totalPointsWhite > totalPointsBlack) {
+          //     window.alert('White Wins!');
+          //   } else if (totalPointsBlack > totalPointsWhite) {
+          //     window.alert('Black Wins!');
+          //   } else {
+          //     window.alert('Draw');
+          //   }
+          // }
+          // }
+          SELF.cachePlayedPosition({
+            'type': 'pass',
+            'forPlayer': forPlayer,
+            'pubnubUUID': pubnubUUID,
+            'time': (new Date().getTime())
+          });
+          SELF.switchCurrentPlayer();
+          return true;
+        }
+      }
+
+      return false;
+    };
+
+    SELF.undo = function(forPlayer, pubnubUUID) {
+
+      var lastPosition = SELF.playedPositions[SELF.playedPositions.length - 1];
+
+      if (lastPosition && 'forPlayer' in lastPosition && 'pubnubUUID' in lastPosition && 'type' in lastPosition) {
+        if (lastPosition.forPlayer == forPlayer && lastPosition.pubnubUUID == pubnubUUID && lastPosition.type === 'undo') {
+          return false;
+        }
+      }
+
+      SELF.cachePlayedPosition({
+        'type': 'undo',
+        'forPlayer': forPlayer,
+        'pubnubUUID': pubnubUUID
+      });
 
       var playedPositions = SELF.rollBackHistoryUsingUndo(SELF.playedPositions);
 
@@ -503,6 +542,8 @@ angular.module('gonubApp')
       if (SELF.turfIsVisible) {
         SELF.attemptToCalculateAndAssignScores();
       }
+
+      return true;
 
     };
 
