@@ -49,29 +49,10 @@
         try {
             ls = window['localStorage'];
         } catch (e) {}
-        var cookieGet = function(key) {
-            if (document.cookie.indexOf(key) == -1) return null;
-            return ((document.cookie || '').match(
-                RegExp(key + '=([^;]+)')
-            ) || [])[1] || null;
-        };
-        var cookieSet = function(key, value) {
-            document.cookie = key + '=' + value +
-                '; expires=Thu, 1 Aug 2030 20:00:00 UTC; path=/';
-        };
-        var cookieTest = (function() {
-            try {
-                cookieSet('pnctest', '1');
-                return cookieGet('pnctest') === '1';
-            } catch (e) {
-                return false;
-            }
-        }());
         return {
             'get': function(key) {
                 try {
                     if (ls) return ls.getItem(key);
-                    if (cookieTest) return cookieGet(key);
                     return store[key];
                 } catch (e) {
                     return store[key];
@@ -80,7 +61,6 @@
             'set': function(key, value) {
                 try {
                     if (ls) return ls.setItem(key, value) && 0;
-                    if (cookieTest) cookieSet(key, value);
                     store[key] = value;
                 } catch (e) {
                     store[key] = value;
