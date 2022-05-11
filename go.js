@@ -1,30 +1,6 @@
 (function() {
 
     /**
-     * BIND
-     * ====
-     * bind( 'keydown', search('a')[0], function(element) {
-     *     ...
-     * } );
-     */
-    function bind(type, el, fun) {
-        _.each(type.split(','), function(etype) {
-            var rapfun = function(e) {
-                if (!e) e = window.event;
-                if (!fun(e)) {
-                    e.cancelBubble = true;
-                    e.preventDefault && e.preventDefault();
-                    e.stopPropagation && e.stopPropagation();
-                }
-            };
-
-            if (el.addEventListener) el.addEventListener(etype, rapfun, false);
-            else if (el.attachEvent) el.attachEvent('on' + etype, rapfun);
-            else el['on' + etype] = rapfun;
-        });
-    }
-
-    /**
      * uuid
      * ====
      * var my_uuid = uuid();
@@ -173,7 +149,7 @@
 
                 _.each(SELF['elementsCache'], function(row, x) {
                     _.each(row, function(ele, y) {
-                        bind('click', ele.children[0], function() {
+                        ele.children[0].addEventListener('click', function() {
                             x = parseInt(x);
                             y = parseInt(y);
                             var forPlayer = SELF['currentPlayer'];
