@@ -25,6 +25,7 @@
 
        SELF['containerEle'] = setup['containerEle'];
        SELF['currentPlayerEle'] = setup['currentPlayerEle'];
+       SELF['youArePlayerEle'] = setup['youArePlayerEle'];
 
        SELF['playedPositionsEle'] = setup['playedPositionsEle'];
        SELF['scoresContainerEle'] = setup['scoresContainerEle'];
@@ -139,8 +140,6 @@
            if ('x' in SELF['lastPosition'] && 'y' in SELF['lastPosition']) {
              SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className = SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className + ' lastPiecePlayed';
            }
-
-           document.body.className = 'currentPlayer' + SELF['getColorClass'](SELF['currentPlayer']);
 
          }
 
@@ -459,7 +458,7 @@
          if (SELF['movers'][SELF['currentPlayer']] === SELF['pubnubUUID']) {
 
            var loop = function(element, status, time, loopCount) {
-             if (loopCount++ > 5) {
+             if (loopCount++ > 1) {
                element.style.visibility = 'visible';
                if (SELF['playerTextAnnouncementTimeout']) {
                  clearTimeout(SELF['playerTextAnnouncementTimeout']);
@@ -473,8 +472,9 @@
              }
            };
 
-           loop(SELF['currentPlayerEle'], 'hidden', 750, 0);
+           loop(SELF['currentPlayerEle'], 'hidden', 200, 0);
          }
+         document.body.className = 'currentPlayer' + SELF['getColorClass'](SELF['currentPlayer']);
        };
 
        SELF['switchCurrentPlayer'] = function() {
@@ -547,6 +547,22 @@
 
            if (m.type === 'move' && 'forPlayer' in m && 'pubnubUUID' in m && !SELF['movers'][m.forPlayer]) {
              SELF['movers'][m.forPlayer] = m.pubnubUUID;
+
+             var youArePlayer0 = SELF['movers'][0] === SELF['pubnubUUID'];
+             var youArePlayer1 = SELF['movers'][1] === SELF['pubnubUUID'];
+
+             if (youArePlayer0 && youArePlayer1) {
+               SELF['youArePlayerEle'].innerHTML = SELF['getColorClass'](0) + ' and ' + SELF['getColorClass'](1);
+             } else if (youArePlayer0) {
+               SELF['youArePlayerEle'].innerHTML = SELF['getColorClass'](0);
+             } else if (youArePlayer1) {
+               SELF['youArePlayerEle'].innerHTML = SELF['getColorClass'](1);
+             } else if (!('0' in SELF['movers']) || !('1' in SELF['movers'])) {
+               SELF['youArePlayerEle'].innerHTML = 'Picking';
+             } else {
+               SELF['youArePlayerEle'].innerHTML = 'Spectating';
+             }
+
            }
 
            if ('undid' in m) {
@@ -836,6 +852,7 @@
          'templateScoresContainerEle': document.getElementById('template_scores_container'),
          'scoresContainerEle': document.getElementById('scores_container'),
          'currentPlayerEle': document.getElementById('current_player'),
+         'youArePlayerEle': document.getElementById('you_are_player'),
          'lobbyName': lobbyName,
          'boardSize': boardSize,
          'pubnubUUID': pubnubUUID,
