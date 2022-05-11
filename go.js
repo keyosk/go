@@ -1,987 +1,1090 @@
-   (function() {
+(function() {
+
+    /**
+     * BIND
+     * ====
+     * bind( 'keydown', search('a')[0], function(element) {
+     *     ...
+     * } );
+     */
+    function bind(type, el, fun) {
+        _.each(type.split(','), function(etype) {
+            var rapfun = function(e) {
+                if (!e) e = window.event;
+                if (!fun(e)) {
+                    e.cancelBubble = true;
+                    e.preventDefault && e.preventDefault();
+                    e.stopPropagation && e.stopPropagation();
+                }
+            };
+
+            if (el.addEventListener) el.addEventListener(etype, rapfun, false);
+            else if (el.attachEvent) el.attachEvent('on' + etype, rapfun);
+            else el['on' + etype] = rapfun;
+        });
+    }
+
+    /**
+     * uuid
+     * ====
+     * var my_uuid = uuid();
+     */
+    function uuid(callback) {
+        var u = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,
+            function(c) {
+                var r = Math.random() * 16 | 0,
+                    v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        if (callback) callback(u);
+        return u;
+    }
+
+    /**
+     * LOCAL STORAGE OR COOKIE
+     */
+    var db = (function() {
+        var store = {};
+        var ls = false;
+        try {
+            ls = window['localStorage'];
+        } catch (e) {}
+        var cookieGet = function(key) {
+            if (document.cookie.indexOf(key) == -1) return null;
+            return ((document.cookie || '').match(
+                RegExp(key + '=([^;]+)')
+            ) || [])[1] || null;
+        };
+        var cookieSet = function(key, value) {
+            document.cookie = key + '=' + value +
+                '; expires=Thu, 1 Aug 2030 20:00:00 UTC; path=/';
+        };
+        var cookieTest = (function() {
+            try {
+                cookieSet('pnctest', '1');
+                return cookieGet('pnctest') === '1';
+            } catch (e) {
+                return false;
+            }
+        }());
+        return {
+            'get': function(key) {
+                try {
+                    if (ls) return ls.getItem(key);
+                    if (cookieTest) return cookieGet(key);
+                    return store[key];
+                } catch (e) {
+                    return store[key];
+                }
+            },
+            'set': function(key, value) {
+                try {
+                    if (ls) return ls.setItem(key, value) && 0;
+                    if (cookieTest) cookieSet(key, value);
+                    store[key] = value;
+                } catch (e) {
+                    store[key] = value;
+                }
+            }
+        };
+    })();
+
+    var randomString = function(len) {
+        var text = '';
+        var charset = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        for (var i = 0; i < len; i++) {
+            text += charset.charAt(Math.floor(Math.random() * charset.length));
+        }
+        return text;
+    };
+
+    var CREATE_GO = function(setup) {
 
-     var randomString = function(len) {
-       var text = '';
-       var charset = 'abcdefghijklmnopqrstuvwxyz0123456789';
-       for (var i = 0; i < len; i++) {
-         text += charset.charAt(Math.floor(Math.random() * charset.length));
-       }
-       return text;
-     };
+        var SELF = function(setup) {
+            return CREATE_GO(setup);
+        };
 
-     var CREATE_GO = function(setup) {
+        var findLibertyRecurseSafety = 0;
 
-       var SELF = function(setup) {
-         return CREATE_GO(setup);
-       };
+        SELF['turfCounting'] = false;
 
-       var findLibertyRecurseSafety = 0;
+        SELF['movers'] = {};
 
-       SELF['turfCounting'] = false;
+        SELF['focused'] = true;
 
-       SELF['movers'] = {};
+        SELF['containerEle'] = setup['containerEle'];
+        SELF['currentPlayerEle'] = setup['currentPlayerEle'];
+        SELF['youArePlayerEle'] = setup['youArePlayerEle'];
 
-       SELF['focused'] = true;
+        SELF['playedPositionsEle'] = setup['playedPositionsEle'];
+        SELF['scoresContainerEle'] = setup['scoresContainerEle'];
 
-       SELF['containerEle'] = setup['containerEle'];
-       SELF['currentPlayerEle'] = setup['currentPlayerEle'];
-       SELF['youArePlayerEle'] = setup['youArePlayerEle'];
+        SELF['templatePlayedPositionsEle'] = setup['templatePlayedPositionsEle'];
+        SELF['templateScoresContainerEle'] = setup['templateScoresContainerEle'];
 
-       SELF['playedPositionsEle'] = setup['playedPositionsEle'];
-       SELF['scoresContainerEle'] = setup['scoresContainerEle'];
+        SELF['templateScoresContainer'] = null;
+        SELF['templatePlayedPositions'] = null;
 
-       SELF['templatePlayedPositionsEle'] = setup['templatePlayedPositionsEle'];
-       SELF['templateScoresContainerEle'] = setup['templateScoresContainerEle'];
+        SELF['lobbyName'] = setup['lobbyName'];
+        SELF['boardSize'] = setup['boardSize'];
 
-       SELF['templateScoresContainer'] = null;
-       SELF['templatePlayedPositions'] = null;
+        SELF['pubnubUUID'] = setup['pubnubUUID'];
 
-       SELF['lobbyName'] = setup['lobbyName'];
-       SELF['boardSize'] = setup['boardSize'];
+        SELF['clickCallback'] = setup['clickCallback'];
+        SELF['passCallback'] = setup['passCallback'];
+        SELF['undoCallback'] = setup['undoCallback'];
 
-       SELF['pubnubUUID'] = setup['pubnubUUID'];
+        SELF['playedPositions'] = [];
 
-       SELF['clickCallback'] = setup['clickCallback'];
-       SELF['passCallback'] = setup['passCallback'];
-       SELF['undoCallback'] = setup['undoCallback'];
+        SELF['lastPrisonersTaken'] = [];
 
-       SELF['playedPositions'] = [];
+        SELF['playerTextAnnouncementTimeout'] = false;
 
-       SELF['lastPrisonersTaken'] = [];
+        SELF['getOppositePlayer'] = function(forPlayer) {
+            return (forPlayer === 0) ? 1 : 0
+        };
 
-       SELF['playerTextAnnouncementTimeout'] = false;
+        SELF['handleOnBlur'] = function() {
+            SELF['focused'] = false;
+        };
 
-       SELF['getOppositePlayer'] = function(forPlayer) {
-         return (forPlayer === 0) ? 1 : 0
-       };
+        SELF['handleOnFocus'] = function() {
+            SELF['focused'] = true;
+        };
 
-       SELF['handleOnBlur'] = function() {
-         SELF['focused'] = false;
-       };
+        SELF['createEmptyBoardStruct'] = function() {
 
-       SELF['handleOnFocus'] = function() {
-         SELF['focused'] = true;
-       };
+            var emptyBoard = [];
 
-       SELF['createEmptyBoardStruct'] = function() {
+            for (var x = 0; x < SELF['boardSize']; x++) {
+                emptyBoard.push([]);
+                for (var y = 0; y < SELF['boardSize']; y++) {
+                    emptyBoard[x].push(null);
+                }
+            }
 
-         var emptyBoard = [];
+            return emptyBoard;
 
-         for (var x = 0; x < SELF['boardSize']; x++) {
-           emptyBoard.push([]);
-           for (var y = 0; y < SELF['boardSize']; y++) {
-             emptyBoard[x].push(null);
-           }
-         }
+        };
 
-         return emptyBoard;
+        SELF['drawBoardFromStruct'] = function() {
 
-       };
+            if (SELF['containerEle'].children.length === 0) {
 
-       SELF['drawBoardFromStruct'] = function() {
+                var tableEle = document.createElement('table');
 
-         if (SELF['containerEle'].children.length === 0) {
+                for (var x in SELF['boardStruct']) {
 
-           var tableEle = document.createElement('table');
+                    var tableRow = document.createElement('tr');
+                    for (var y in SELF['boardStruct'][x]) {
+                        var tableCell = document.createElement('td');
+                        var coord_text = (parseInt(x) + 1) + ',' + (parseInt(y) + 1);
+                        tableCell.className = SELF['getColorClass'](SELF['boardStruct'][x][y]);
+                        tableCell.innerHTML = '<div title=' + coord_text + '><span>' + coord_text + '</span></div>';
+                        tableRow.appendChild(tableCell);
+                        SELF['elementsCache'][x][y] = tableCell;
+                    }
 
-           for (var x in SELF['boardStruct']) {
+                    tableEle.appendChild(tableRow);
 
-             var tableRow = document.createElement('tr');
-             for (var y in SELF['boardStruct'][x]) {
-               var tableCell = document.createElement('td');
-               var coord_text = (parseInt(x) + 1) + ',' + (parseInt(y) + 1);
-               tableCell.className = SELF['getColorClass'](SELF['boardStruct'][x][y]);
-               tableCell.innerHTML = '<div title=' + coord_text + '><span>' + coord_text + '</span></div>';
-               tableRow.appendChild(tableCell);
-               SELF['elementsCache'][x][y] = tableCell;
-             }
+                }
 
-             tableEle.appendChild(tableRow);
+                SELF['containerEle'].appendChild(tableEle);
 
-           }
-
-           SELF['containerEle'].appendChild(tableEle);
-
-           _.each(SELF['elementsCache'], function(row, x) {
-             _.each(row, function(ele, y) {
-               PUBNUB.bind('click', ele.children[0], function() {
-                 x = parseInt(x);
-                 y = parseInt(y);
-                 var forPlayer = SELF['currentPlayer'];
+                _.each(SELF['elementsCache'], function(row, x) {
+                    _.each(row, function(ele, y) {
+                        bind('click', ele.children[0], function() {
+                            x = parseInt(x);
+                            y = parseInt(y);
+                            var forPlayer = SELF['currentPlayer'];
 
-                 if (SELF['movers'][forPlayer] && SELF['movers'][forPlayer] !== SELF['pubnubUUID']) {
-                   alert('That piece belongs to someone else.');
-                   return;
-                 }
+                            if (SELF['movers'][forPlayer] && SELF['movers'][forPlayer] !== SELF['pubnubUUID']) {
+                                alert('That piece belongs to someone else.');
+                                return;
+                            }
 
-                 var result = SELF['moveStoneToXY'](SELF['currentPlayer'], x, y);
-                 if (result) {
-                   SELF['cachePlayedPosition']({
-                     'type': 'move',
-                     'forPlayer': forPlayer,
-                     'x': x,
-                     'y': y
-                   });
-                   if ('function' === typeof SELF['clickCallback']) {
-                     SELF['clickCallback'](x, y, SELF['getOppositePlayer'](SELF['currentPlayer']));
-                   }
-                 }
-               });
-             });
-           });
-
-         } else {
-
-           for (var x in SELF['boardStruct']) {
-             for (var y in SELF['boardStruct'][x]) {
-               SELF['elementsCache'][x][y].className = SELF['getColorClass'](SELF['boardStruct'][x][y]);
-             }
-           }
-           if ('x' in SELF['lastPosition'] && 'y' in SELF['lastPosition']) {
-             SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className = SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className + ' lastPiecePlayed';
-           }
-
-         }
+                            var result = SELF['moveStoneToXY'](SELF['currentPlayer'], x, y);
+                            if (result) {
+                                SELF['cachePlayedPosition']({
+                                    'type': 'move',
+                                    'forPlayer': forPlayer,
+                                    'x': x,
+                                    'y': y
+                                });
+                                if ('function' === typeof SELF['clickCallback']) {
+                                    SELF['clickCallback'](x, y, SELF['getOppositePlayer'](SELF['currentPlayer']));
+                                }
+                            }
+                        });
+                    });
+                });
 
-       };
-
-       SELF['getPositionValid'] = function(forPlayer, x, y) {
-
-         if (SELF['boardStruct'][x][y] !== null) {
-           return false;
-         }
-
-         var adjacentPositions = SELF['adjacentPositionFinder'](x, y);
-
-         findLibertyRecurseSafety = 0;
-
-         var adjacentPositionsData = SELF['findDataForAdjacentPositions'](
-           forPlayer, [
-             [x, y]
-           ],
-           adjacentPositions
-         );
-
-         SELF['boardStruct'][x][y] = forPlayer;
-
-         var prisonersTakenData = SELF['tryToTakePrisoners'](forPlayer, x, y);
-
-         var numberPrisonersTaken = Object.keys(prisonersTakenData).length;
-
-         SELF['lastPosition'] = {
-           'text': SELF['getColorClass'](forPlayer) + ' @ ' + (parseInt(x) + 1) + ',' + (parseInt(y) + 1),
-           'x': parseInt(x),
-           'y': parseInt(y)
-         };
+            } else {
 
-         /* logic to determine if an immediate recapture is taking place */
-
-         if (numberPrisonersTaken === 1 && SELF['lastPrisonersTaken'].length) {
-
-           var potentialRecapture = SELF['lastPrisonersTaken'][SELF['lastPrisonersTaken'].length - 1];
-
-           var lastOwner = potentialRecapture.forPlayer;
-           var lastX = potentialRecapture.x;
-           var lastY = potentialRecapture.y;
-           var lastPrisoner = [];
-
-           for (var idx in potentialRecapture.prisoners) {
-             lastPrisoner.push(parseInt(idx.split(',')[0]));
-             lastPrisoner.push(parseInt(idx.split(',')[1]));
-           }
-
-           var currentOwner = forPlayer;
-           var currentX = x;
-           var currentY = y;
-           var currentPrisoner = [];
-
-           for (var idx in prisonersTakenData) {
-             currentPrisoner.push(parseInt(idx.split(',')[0]));
-             currentPrisoner.push(parseInt(idx.split(',')[1]));
-           }
+                for (var x in SELF['boardStruct']) {
+                    for (var y in SELF['boardStruct'][x]) {
+                        SELF['elementsCache'][x][y].className = SELF['getColorClass'](SELF['boardStruct'][x][y]);
+                    }
+                }
+                if ('x' in SELF['lastPosition'] && 'y' in SELF['lastPosition']) {
+                    SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className = SELF['elementsCache'][SELF['lastPosition'].x][SELF['lastPosition'].y].className + ' lastPiecePlayed';
+                }
 
-           var recaptureFound = false;
+            }
 
-           if (currentOwner !== lastOwner && currentPrisoner[0] === lastX && currentPrisoner[1] === lastY && lastPrisoner[0] === currentX && lastPrisoner[1] === currentY) {
-             recaptureFound = true;
-           }
+        };
 
-           if (recaptureFound) {
+        SELF['getPositionValid'] = function(forPlayer, x, y) {
 
-             var immediateRecapture = false;
+            if (SELF['boardStruct'][x][y] !== null) {
+                return false;
+            }
 
-             var idx = SELF['playedPositions'].length;
-             while (true) {
-               if (idx === 0) {
-                 break;
-               }
-               idx = idx - 1;
-               if (SELF['playedPositions'][idx].type === 'move' && !('undid' in SELF['playedPositions'][idx])) {
-                 immediateRecapture = (SELF['playedPositions'][idx].x === currentPrisoner[0] && SELF['playedPositions'][idx].y === currentPrisoner[1])
-                 break;
-               }
-             }
+            var adjacentPositions = SELF['adjacentPositionFinder'](x, y);
 
-             if (immediateRecapture) {
-               numberPrisonersTaken = 0;
-               alert('Immediate recapture is not allowed.');
-             }
+            findLibertyRecurseSafety = 0;
 
-           }
+            var adjacentPositionsData = SELF['findDataForAdjacentPositions'](
+                forPlayer, [
+                    [x, y]
+                ],
+                adjacentPositions
+            );
 
-         }
+            SELF['boardStruct'][x][y] = forPlayer;
 
-         /* end logic to determine if an immediate recapture is taking place */
+            var prisonersTakenData = SELF['tryToTakePrisoners'](forPlayer, x, y);
 
-         if (numberPrisonersTaken) {
+            var numberPrisonersTaken = Object.keys(prisonersTakenData).length;
 
-           for (var idx in prisonersTakenData) {
-             var _x = idx.split(',')[0];
-             var _y = idx.split(',')[1];
-             SELF['boardStruct'][_x][_y] = null;
-           }
+            SELF['lastPosition'] = {
+                'text': SELF['getColorClass'](forPlayer) + ' @ ' + (parseInt(x) + 1) + ',' + (parseInt(y) + 1),
+                'x': parseInt(x),
+                'y': parseInt(y)
+            };
 
-           SELF['lastPrisonersTaken'].push({
-             forPlayer: forPlayer,
-             x: x,
-             y: y,
-             prisoners: prisonersTakenData
-           });
+            /* logic to determine if an immediate recapture is taking place */
 
-           if (SELF['getOppositePlayer'](forPlayer) === 0) {
-             SELF['blackPrisoners'] = parseInt(SELF['blackPrisoners']) + numberPrisonersTaken;
-           } else {
-             SELF['whitePrisoners'] = parseInt(SELF['whitePrisoners']) + numberPrisonersTaken;
-           }
+            if (numberPrisonersTaken === 1 && SELF['lastPrisonersTaken'].length) {
 
-         }
+                var potentialRecapture = SELF['lastPrisonersTaken'][SELF['lastPrisonersTaken'].length - 1];
 
-         if (Object.keys(adjacentPositionsData.liberties).length === 0 && numberPrisonersTaken === 0) {
-           SELF['boardStruct'][x][y] = null;
-           return false;
-         }
+                var lastOwner = potentialRecapture.forPlayer;
+                var lastX = potentialRecapture.x;
+                var lastY = potentialRecapture.y;
+                var lastPrisoner = [];
 
-         return true;
-       };
+                for (var idx in potentialRecapture.prisoners) {
+                    lastPrisoner.push(parseInt(idx.split(',')[0]));
+                    lastPrisoner.push(parseInt(idx.split(',')[1]));
+                }
 
-       SELF['adjacentPositionFinder'] = function(x, y) {
+                var currentOwner = forPlayer;
+                var currentX = x;
+                var currentY = y;
+                var currentPrisoner = [];
 
-         var findUp = (x == 0) ? false : true;
-         var findRight = (y == SELF['boardSize'] - 1) ? false : true;
-         var findDown = (x == SELF['boardSize'] - 1) ? false : true;
-         var findLeft = (y == 0) ? false : true;
+                for (var idx in prisonersTakenData) {
+                    currentPrisoner.push(parseInt(idx.split(',')[0]));
+                    currentPrisoner.push(parseInt(idx.split(',')[1]));
+                }
 
-         var positions = [];
+                var recaptureFound = false;
 
-         if (findDown) {
-           var positionDown = SELF['boardStruct'][x + 1][y];
-           positions.push([x + 1, y]);
-         }
+                if (currentOwner !== lastOwner && currentPrisoner[0] === lastX && currentPrisoner[1] === lastY && lastPrisoner[0] === currentX && lastPrisoner[1] === currentY) {
+                    recaptureFound = true;
+                }
 
-         if (findUp) {
-           var positionUp = SELF['boardStruct'][x - 1][y];
-           positions.push([x - 1, y]);
-         }
+                if (recaptureFound) {
 
-         if (findRight) {
-           var positionRight = SELF['boardStruct'][x][y + 1];
-           positions.push([x, y + 1]);
-         }
+                    var immediateRecapture = false;
 
-         if (findLeft) {
-           var positionLeft = SELF['boardStruct'][x][y - 1];
-           positions.push([x, y - 1]);
-         }
+                    var idx = SELF['playedPositions'].length;
+                    while (true) {
+                        if (idx === 0) {
+                            break;
+                        }
+                        idx = idx - 1;
+                        if (SELF['playedPositions'][idx].type === 'move' && !('undid' in SELF['playedPositions'][idx])) {
+                            immediateRecapture = (SELF['playedPositions'][idx].x === currentPrisoner[0] && SELF['playedPositions'][idx].y === currentPrisoner[1])
+                            break;
+                        }
+                    }
 
-         return positions;
+                    if (immediateRecapture) {
+                        numberPrisonersTaken = 0;
+                        alert('Immediate recapture is not allowed.');
+                    }
 
-       };
+                }
 
-       SELF['findDataForAdjacentPositions'] = function(forPlayer, examinedPositions, adjacentPositions) {
+            }
 
-         findLibertyRecurseSafety++
+            /* end logic to determine if an immediate recapture is taking place */
 
-         if (findLibertyRecurseSafety > 200) {
+            if (numberPrisonersTaken) {
 
-           return {};
-         }
+                for (var idx in prisonersTakenData) {
+                    var _x = idx.split(',')[0];
+                    var _y = idx.split(',')[1];
+                    SELF['boardStruct'][_x][_y] = null;
+                }
 
-         var _results = {
-           'liberties': {},
-           'group': {}
-         };
+                SELF['lastPrisonersTaken'].push({
+                    forPlayer: forPlayer,
+                    x: x,
+                    y: y,
+                    prisoners: prisonersTakenData
+                });
 
-         for (var idx in adjacentPositions) {
-           var x = adjacentPositions[idx][0];
-           var y = adjacentPositions[idx][1];
+                if (SELF['getOppositePlayer'](forPlayer) === 0) {
+                    SELF['blackPrisoners'] = parseInt(SELF['blackPrisoners']) + numberPrisonersTaken;
+                } else {
+                    SELF['whitePrisoners'] = parseInt(SELF['whitePrisoners']) + numberPrisonersTaken;
+                }
 
-           var positionOwner = SELF['boardStruct'][x][y];
+            }
 
-           if ((forPlayer === null && positionOwner !== null) || (forPlayer !== null && positionOwner === null)) {
-             _results['liberties'][x + ',' + y] = positionOwner;
-             continue;
-           }
+            if (Object.keys(adjacentPositionsData.liberties).length === 0 && numberPrisonersTaken === 0) {
+                SELF['boardStruct'][x][y] = null;
+                return false;
+            }
 
-           /*protection attempt for recursive loopback behavior*/
+            return true;
+        };
 
-           var shouldContinue = false;
-           for (var _idx in examinedPositions) {
-             var _x = examinedPositions[_idx][0];
-             var _y = examinedPositions[_idx][1];
-             if (x === _x && y === _y) {
-               shouldContinue = true;
-               break;
-             }
-           }
-           if (shouldContinue) {
-             continue;
-           }
+        SELF['adjacentPositionFinder'] = function(x, y) {
 
-           /*protection attempt for recursive loopback behavior*/
+            var findUp = (x == 0) ? false : true;
+            var findRight = (y == SELF['boardSize'] - 1) ? false : true;
+            var findDown = (x == SELF['boardSize'] - 1) ? false : true;
+            var findLeft = (y == 0) ? false : true;
 
-           if (positionOwner === forPlayer) {
+            var positions = [];
 
-             var moreAdjacentPositions = SELF['adjacentPositionFinder'](x, y);
+            if (findDown) {
+                var positionDown = SELF['boardStruct'][x + 1][y];
+                positions.push([x + 1, y]);
+            }
 
-             moreAdjacentPositions = _.filter(moreAdjacentPositions, function(item) {
-               var _x = item[0];
-               var _y = item[1];
+            if (findUp) {
+                var positionUp = SELF['boardStruct'][x - 1][y];
+                positions.push([x - 1, y]);
+            }
 
-               var shouldReturnPosition = true;
+            if (findRight) {
+                var positionRight = SELF['boardStruct'][x][y + 1];
+                positions.push([x, y + 1]);
+            }
 
-               for (var _idx in examinedPositions) {
-                 var __x = examinedPositions[_idx][0];
-                 var __y = examinedPositions[_idx][1];
-                 if (__x == _x && __y == _y) {
-                   shouldReturnPosition = false;
+            if (findLeft) {
+                var positionLeft = SELF['boardStruct'][x][y - 1];
+                positions.push([x, y - 1]);
+            }
 
-                   break;
-                 }
-               }
+            return positions;
 
-               return shouldReturnPosition;
-             });
+        };
 
-             examinedPositions.push([x, y]);
+        SELF['findDataForAdjacentPositions'] = function(forPlayer, examinedPositions, adjacentPositions) {
 
-             var adjacentPositionsData = SELF['findDataForAdjacentPositions'](forPlayer, examinedPositions, moreAdjacentPositions);
+            findLibertyRecurseSafety++
 
-             for (var _idx in adjacentPositionsData.liberties) {
-               _results['liberties'][_idx] = 1;
-             }
-           }
-         }
+            if (findLibertyRecurseSafety > 200) {
 
-         _results['group'] = examinedPositions;
+                return {};
+            }
 
-         return _results;
+            var _results = {
+                'liberties': {},
+                'group': {}
+            };
 
-       };
+            for (var idx in adjacentPositions) {
+                var x = adjacentPositions[idx][0];
+                var y = adjacentPositions[idx][1];
 
-       SELF['tryToTakePrisoners'] = function(forPlayer, x, y) {
+                var positionOwner = SELF['boardStruct'][x][y];
 
-         var adjacentPositions = SELF['adjacentPositionFinder'](x, y);
+                if ((forPlayer === null && positionOwner !== null) || (forPlayer !== null && positionOwner === null)) {
+                    _results['liberties'][x + ',' + y] = positionOwner;
+                    continue;
+                }
 
-         var opponentPlayer = SELF['getOppositePlayer'](forPlayer);
+                /*protection attempt for recursive loopback behavior*/
 
-         adjacentPositions = _.filter(adjacentPositions, function(item) {
-           var _x = item[0];
-           var _y = item[1];
-           return SELF['boardStruct'][_x][_y] === opponentPlayer;
-         });
+                var shouldContinue = false;
+                for (var _idx in examinedPositions) {
+                    var _x = examinedPositions[_idx][0];
+                    var _y = examinedPositions[_idx][1];
+                    if (x === _x && y === _y) {
+                        shouldContinue = true;
+                        break;
+                    }
+                }
+                if (shouldContinue) {
+                    continue;
+                }
 
-         var prisonersList = {};
+                /*protection attempt for recursive loopback behavior*/
 
-         for (var idx in adjacentPositions) {
-           var _x = adjacentPositions[idx][0];
-           var _y = adjacentPositions[idx][1];
-           findLibertyRecurseSafety = 0;
-           var adjacentPositionsData = SELF['findDataForAdjacentPositions'](
-             opponentPlayer, [
-               [x, y],
-               [_x, _y]
-             ],
-             SELF['adjacentPositionFinder'](_x, _y)
-           );
+                if (positionOwner === forPlayer) {
 
-           if (Object.keys(adjacentPositionsData.liberties).length === 0) {
+                    var moreAdjacentPositions = SELF['adjacentPositionFinder'](x, y);
 
-             prisonersList[_x + ',' + _y] = opponentPlayer;
+                    moreAdjacentPositions = _.filter(moreAdjacentPositions, function(item) {
+                        var _x = item[0];
+                        var _y = item[1];
 
-             for (var _idx in adjacentPositionsData.group) {
-               var __x = adjacentPositionsData.group[_idx][0];
-               var __y = adjacentPositionsData.group[_idx][1];
-               if (SELF['boardStruct'][__x][__y] === opponentPlayer) {
-                 prisonersList[__x + ',' + __y] = opponentPlayer;
-               }
-             }
-           }
-         }
+                        var shouldReturnPosition = true;
 
-         return prisonersList;
+                        for (var _idx in examinedPositions) {
+                            var __x = examinedPositions[_idx][0];
+                            var __y = examinedPositions[_idx][1];
+                            if (__x == _x && __y == _y) {
+                                shouldReturnPosition = false;
 
-       };
+                                break;
+                            }
+                        }
 
+                        return shouldReturnPosition;
+                    });
 
-       SELF['moveStoneToXY'] = function(forPlayer, x, y) {
+                    examinedPositions.push([x, y]);
 
-         if (forPlayer !== SELF['currentPlayer']) {
-           // don't allow a click out of turn
-           return false;
-         }
+                    var adjacentPositionsData = SELF['findDataForAdjacentPositions'](forPlayer, examinedPositions, moreAdjacentPositions);
 
-         var positionValid = SELF['getPositionValid'](forPlayer, x, y);
+                    for (var _idx in adjacentPositionsData.liberties) {
+                        _results['liberties'][_idx] = 1;
+                    }
+                }
+            }
 
-         if (positionValid === false) {
-           return false;
-         }
+            _results['group'] = examinedPositions;
 
-         SELF['switchCurrentPlayer']();
+            return _results;
 
-         SELF['drawBoardFromStruct']();
+        };
 
-         return true;
-       };
+        SELF['tryToTakePrisoners'] = function(forPlayer, x, y) {
 
+            var adjacentPositions = SELF['adjacentPositionFinder'](x, y);
 
-       SELF['changeCurrentPlayerText'] = function() {
+            var opponentPlayer = SELF['getOppositePlayer'](forPlayer);
 
-         SELF['currentPlayerEle'].style.visibility = 'visible';
+            adjacentPositions = _.filter(adjacentPositions, function(item) {
+                var _x = item[0];
+                var _y = item[1];
+                return SELF['boardStruct'][_x][_y] === opponentPlayer;
+            });
 
-         SELF['currentPlayerEle'].innerHTML = SELF['getColorClass'](SELF['currentPlayer']);
+            var prisonersList = {};
 
-         if (SELF['playerTextAnnouncementTimeout']) {
-           clearTimeout(SELF['playerTextAnnouncementTimeout']);
-           SELF['playerTextAnnouncementTimeout'] = null;
-         }
+            for (var idx in adjacentPositions) {
+                var _x = adjacentPositions[idx][0];
+                var _y = adjacentPositions[idx][1];
+                findLibertyRecurseSafety = 0;
+                var adjacentPositionsData = SELF['findDataForAdjacentPositions'](
+                    opponentPlayer, [
+                        [x, y],
+                        [_x, _y]
+                    ],
+                    SELF['adjacentPositionFinder'](_x, _y)
+                );
 
-         if (SELF['movers'][SELF['currentPlayer']] === SELF['pubnubUUID']) {
+                if (Object.keys(adjacentPositionsData.liberties).length === 0) {
 
-           var loop = function(element, status, time, loopCount) {
-             if (loopCount++ > 1) {
-               element.style.visibility = 'visible';
-               if (SELF['playerTextAnnouncementTimeout']) {
-                 clearTimeout(SELF['playerTextAnnouncementTimeout']);
-                 SELF['playerTextAnnouncementTimeout'] = null;
-               }
-             } else {
-               element.style.visibility = status;
-               SELF['playerTextAnnouncementTimeout'] = setTimeout(function() {
-                 loop(element, status === 'hidden' ? 'visible' : 'hidden', time, loopCount);
-               }, time);
-             }
-           };
+                    prisonersList[_x + ',' + _y] = opponentPlayer;
 
-           loop(SELF['currentPlayerEle'], 'hidden', 200, 0);
-         }
-         document.body.className = 'currentPlayer' + SELF['getColorClass'](SELF['currentPlayer']);
-       };
+                    for (var _idx in adjacentPositionsData.group) {
+                        var __x = adjacentPositionsData.group[_idx][0];
+                        var __y = adjacentPositionsData.group[_idx][1];
+                        if (SELF['boardStruct'][__x][__y] === opponentPlayer) {
+                            prisonersList[__x + ',' + __y] = opponentPlayer;
+                        }
+                    }
+                }
+            }
 
-       SELF['switchCurrentPlayer'] = function() {
-         SELF['currentPlayer'] = SELF['getOppositePlayer'](SELF['currentPlayer']);
-         SELF['changeCurrentPlayerText']();
-       };
+            return prisonersList;
 
-       SELF['getColorClass'] = function(colorState) {
-         var color = '';
-         if (colorState === 0) {
-           color = 'Black';
-         } else if (colorState === 1) {
-           color = 'White';
-         }
-         return color;
-       };
-
-       SELF['cachePlayedPosition'] = function(m) {
-
-         if (!('pubnubUUID' in m)) {
-           m['pubnubUUID'] = SELF['pubnubUUID'];
-         }
-
-         if (!('time' in m)) {
-           m['time'] = (new Date().getTime());
-         }
-
-         SELF['playedPositions'].push(m);
-
-         SELF['playedPositionsEle'].innerHTML = SELF['templatePlayedPositions']({
-           playedPositions: SELF['playedPositions']
-         });
-
-         SELF['drawScoresContainer']();
-
-       };
-
-       SELF['rollBackHistoryUsingUndo'] = function(messages) {
-
-         //Remove all previous undids to prevent cludging
-         for (var idx in messages) {
-           delete messages[idx].undid;
-         }
-
-         for (var idx in messages) {
-           if ('type' in messages[idx] && messages[idx].type === 'undo') {
-             var undoIndex = idx;
-             while (undoIndex - 1 >= 0) {
-               undoIndex = undoIndex - 1;
-               if (undoIndex >= 0) {
-                 if ('type' in messages[undoIndex] && messages[undoIndex].type !== 'undo' && !('undid' in messages[undoIndex])) {
-                   messages[undoIndex].undid = true;
-                   break;
-                 }
-               } else {
-                 break;
-               }
-             }
-           }
-         }
-         return messages;
-       };
-
-       SELF['processPubNubPayload'] = function(m, forHistory) {
-         if ('type' in m) {
-
-           if (!forHistory && SELF['focused'] === false) {
-             sounds.play('chat');
-           }
-
-           if (m.type === 'move' && 'forPlayer' in m && 'pubnubUUID' in m && !SELF['movers'][m.forPlayer]) {
-             SELF['movers'][m.forPlayer] = m.pubnubUUID;
+        };
 
-             var youArePlayer0 = SELF['movers'][0] === SELF['pubnubUUID'];
-             var youArePlayer1 = SELF['movers'][1] === SELF['pubnubUUID'];
 
-             if (youArePlayer0 && youArePlayer1) {
-               SELF['youArePlayerEle'].innerHTML = SELF['getColorClass'](0) + ' and ' + SELF['getColorClass'](1);
-             } else if (youArePlayer0) {
-               SELF['youArePlayerEle'].innerHTML = SELF['getColorClass'](0);
-             } else if (youArePlayer1) {
-               SELF['youArePlayerEle'].innerHTML = SELF['getColorClass'](1);
-             } else if (!('0' in SELF['movers']) || !('1' in SELF['movers'])) {
-               SELF['youArePlayerEle'].innerHTML = 'Picking';
-             } else {
-               SELF['youArePlayerEle'].innerHTML = 'Spectating';
-             }
+        SELF['moveStoneToXY'] = function(forPlayer, x, y) {
 
-           }
+            if (forPlayer !== SELF['currentPlayer']) {
+                // don't allow a click out of turn
+                return false;
+            }
 
-           if ('undid' in m) {
-             SELF['cachePlayedPosition'](m);
-           } else if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
+            var positionValid = SELF['getPositionValid'](forPlayer, x, y);
 
-             var result = SELF['moveStoneToXY'](parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
-             if (result) {
-               SELF['cachePlayedPosition'](m);
-             }
-             if (!forHistory && SELF['turfCounting']) {
-               SELF['attemptToCalculateAndAssignScores']();
-             }
+            if (positionValid === false) {
+                return false;
+            }
 
-           } else if (m.type === 'pass' && 'forPlayer' in m) {
-             if (parseInt(SELF['currentPlayer']) === parseInt(m.forPlayer)) {
-               if (SELF['movers'][m.forPlayer] && SELF['movers'][m.forPlayer] !== m.pubnubUUID) {
-                 //Only allow a pass on your own turn
-               } else {
-                 var lastPosition = SELF['playedPositions'][SELF['playedPositions'].length - 1];
-                 if (lastPosition.type === 'pass') {
-                   SELF['turfCounting'] = true;
-                   var results = SELF['attemptToCalculateAndAssignScores']();
-                   document.body.className = 'currentPlayer' + SELF['getColorClass'](SELF['currentPlayer']);
-                 }
-                 // if (results[0] || results[1]) {
-                 //   var totalPointsBlack = parseInt(SELF['whitePrisoners']) + parseInt(results[0]);
-                 //   var totalPointsWhite = parseInt(SELF['blackPrisoners']) + parseInt(results[1]);
-                 //   if (totalPointsWhite > totalPointsBlack) {
-                 //     alert('White Wins!');
-                 //   } else if (totalPointsBlack > totalPointsWhite) {
-                 //     alert('Black Wins!');
-                 //   } else {
-                 //     alert('Draw');
-                 //   }
-                 // }
-                 // }
-                 SELF['cachePlayedPosition'](m);
-                 SELF['switchCurrentPlayer']();
-               }
-             }
-           } else if (m.type === 'undo') {
-             SELF['cachePlayedPosition'](m);
-             if (forHistory === false) {
-               SELF['undo']();
-             }
-           }
-         }
-       };
+            SELF['switchCurrentPlayer']();
 
-       SELF['undo'] = function() {
+            SELF['drawBoardFromStruct']();
 
-         var playedPositions = SELF['rollBackHistoryUsingUndo'](SELF['playedPositions']);
+            return true;
+        };
 
-         SELF['init']();
 
-         for (var idx in playedPositions) {
-           SELF['processPubNubPayload'](playedPositions[idx], true);
-         }
+        SELF['changeCurrentPlayerText'] = function() {
 
-         SELF['drawBoardFromStruct']();
+            SELF['currentPlayerEle'].style.visibility = 'visible';
 
-         if (SELF['turfCounting']) {
+            SELF['currentPlayerEle'].innerHTML = SELF['getColorClass'](SELF['currentPlayer']);
 
-           SELF['attemptToCalculateAndAssignScores']();
+            if (SELF['playerTextAnnouncementTimeout']) {
+                clearTimeout(SELF['playerTextAnnouncementTimeout']);
+                SELF['playerTextAnnouncementTimeout'] = null;
+            }
 
-         }
+            if (SELF['movers'][SELF['currentPlayer']] === SELF['pubnubUUID']) {
 
-       };
+                var loop = function(element, status, time, loopCount) {
+                    if (loopCount++ > 1) {
+                        element.style.visibility = 'visible';
+                        if (SELF['playerTextAnnouncementTimeout']) {
+                            clearTimeout(SELF['playerTextAnnouncementTimeout']);
+                            SELF['playerTextAnnouncementTimeout'] = null;
+                        }
+                    } else {
+                        element.style.visibility = status;
+                        SELF['playerTextAnnouncementTimeout'] = setTimeout(function() {
+                            loop(element, status === 'hidden' ? 'visible' : 'hidden', time, loopCount);
+                        }, time);
+                    }
+                };
 
-       SELF['attemptToCalculateAndAssignScores'] = function() {
+                loop(SELF['currentPlayerEle'], 'hidden', 200, 0);
+            }
+            document.body.className = 'currentPlayer' + SELF['getColorClass'](SELF['currentPlayer']);
+        };
 
-         var finalEmptySpots = [];
+        SELF['switchCurrentPlayer'] = function() {
+            SELF['currentPlayer'] = SELF['getOppositePlayer'](SELF['currentPlayer']);
+            SELF['changeCurrentPlayerText']();
+        };
 
-         var finalEmptyCoords = {};
+        SELF['getColorClass'] = function(colorState) {
+            var color = '';
+            if (colorState === 0) {
+                color = 'Black';
+            } else if (colorState === 1) {
+                color = 'White';
+            }
+            return color;
+        };
 
-         var emptySpots = 0;
+        SELF['cachePlayedPosition'] = function(m) {
 
-         var shouldBreak = false;
+            if (!('pubnubUUID' in m)) {
+                m['pubnubUUID'] = SELF['pubnubUUID'];
+            }
 
-         for (var x in SELF['boardStruct']) {
+            if (!('time' in m)) {
+                m['time'] = (new Date().getTime());
+            }
 
-           for (var y in SELF['boardStruct'][x]) {
+            SELF['playedPositions'].push(m);
 
-             x = parseInt(x);
-             y = parseInt(y);
+            SELF['playedPositionsEle'].innerHTML = SELF['templatePlayedPositions']({
+                playedPositions: SELF['playedPositions']
+            });
 
-             if (SELF['boardStruct'][x][y] === null) {
+            SELF['drawScoresContainer']();
 
-               emptySpots++;
+        };
 
-               var adjacentPositions = SELF['adjacentPositionFinder'](x, y);
+        SELF['rollBackHistoryUsingUndo'] = function(messages) {
 
-               findLibertyRecurseSafety = 0;
+            //Remove all previous undids to prevent cludging
+            for (var idx in messages) {
+                delete messages[idx].undid;
+            }
 
-               var adjacentPositionsData = SELF['findDataForAdjacentPositions'](
-                 null, [
-                   [x, y]
-                 ],
-                 adjacentPositions
-               );
+            for (var idx in messages) {
+                if ('type' in messages[idx] && messages[idx].type === 'undo') {
+                    var undoIndex = idx;
+                    while (undoIndex - 1 >= 0) {
+                        undoIndex = undoIndex - 1;
+                        if (undoIndex >= 0) {
+                            if ('type' in messages[undoIndex] && messages[undoIndex].type !== 'undo' && !('undid' in messages[undoIndex])) {
+                                messages[undoIndex].undid = true;
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+            return messages;
+        };
 
-               finalEmptySpots.push(adjacentPositionsData);
-             }
+        SELF['processPubNubPayload'] = function(m, forHistory) {
+            if ('type' in m) {
 
-           }
-         }
+                if (m.type === 'move' && 'forPlayer' in m && 'pubnubUUID' in m && !SELF['movers'][m.forPlayer]) {
+                    SELF['movers'][m.forPlayer] = m.pubnubUUID;
 
-         var turfFor0 = 0;
-         var turfFor1 = 0;
+                    var youArePlayer0 = SELF['movers'][0] === SELF['pubnubUUID'];
+                    var youArePlayer1 = SELF['movers'][1] === SELF['pubnubUUID'];
 
-         for (var idx in finalEmptySpots) {
+                    if (youArePlayer0 && youArePlayer1) {
+                        SELF['youArePlayerEle'].innerHTML = SELF['getColorClass'](0) + ' and ' + SELF['getColorClass'](1);
+                    } else if (youArePlayer0) {
+                        SELF['youArePlayerEle'].innerHTML = SELF['getColorClass'](0);
+                    } else if (youArePlayer1) {
+                        SELF['youArePlayerEle'].innerHTML = SELF['getColorClass'](1);
+                    } else if (!('0' in SELF['movers']) || !('1' in SELF['movers'])) {
+                        SELF['youArePlayerEle'].innerHTML = 'Picking';
+                    } else {
+                        SELF['youArePlayerEle'].innerHTML = 'Spectating';
+                    }
 
-           var owners = [];
+                }
 
-           for (var _idx in finalEmptySpots[idx].liberties) {
-             var _x = parseInt(_idx.split(',')[0]);
-             var _y = parseInt(_idx.split(',')[1]);
-             owners.push(SELF['boardStruct'][_x][_y]);
-           }
+                if ('undid' in m) {
+                    SELF['cachePlayedPosition'](m);
+                } else if (m.type === 'move' && 'x' in m && 'y' in m && 'forPlayer' in m) {
 
-           var sameOwner = (owners.length === _.filter(owners, function(item) {
-             return item === owners[0];
-           }).length);
+                    var result = SELF['moveStoneToXY'](parseInt(m.forPlayer), parseInt(m.x), parseInt(m.y));
+                    if (result) {
+                        SELF['cachePlayedPosition'](m);
+                    }
+                    if (!forHistory && SELF['turfCounting']) {
+                        SELF['attemptToCalculateAndAssignScores']();
+                    }
 
-           if (sameOwner && (owners[0] === 1 || owners[0] === 0)) {
+                } else if (m.type === 'pass' && 'forPlayer' in m) {
+                    if (parseInt(SELF['currentPlayer']) === parseInt(m.forPlayer)) {
+                        if (SELF['movers'][m.forPlayer] && SELF['movers'][m.forPlayer] !== m.pubnubUUID) {
+                            //Only allow a pass on your own turn
+                        } else {
+                            var lastPosition = SELF['playedPositions'][SELF['playedPositions'].length - 1];
+                            if (lastPosition.type === 'pass') {
+                                SELF['turfCounting'] = true;
+                                var results = SELF['attemptToCalculateAndAssignScores']();
+                                document.body.className = 'currentPlayer' + SELF['getColorClass'](SELF['currentPlayer']);
+                            }
+                            // if (results[0] || results[1]) {
+                            //   var totalPointsBlack = parseInt(SELF['whitePrisoners']) + parseInt(results[0]);
+                            //   var totalPointsWhite = parseInt(SELF['blackPrisoners']) + parseInt(results[1]);
+                            //   if (totalPointsWhite > totalPointsBlack) {
+                            //     alert('White Wins!');
+                            //   } else if (totalPointsBlack > totalPointsWhite) {
+                            //     alert('Black Wins!');
+                            //   } else {
+                            //     alert('Draw');
+                            //   }
+                            // }
+                            // }
+                            SELF['cachePlayedPosition'](m);
+                            SELF['switchCurrentPlayer']();
+                        }
+                    }
+                } else if (m.type === 'undo') {
+                    SELF['cachePlayedPosition'](m);
+                    if (forHistory === false) {
+                        SELF['undo']();
+                    }
+                }
+            }
+        };
 
-             if (owners[0] === 0) {
-               turfFor0++;
-             } else if (owners[0] === 1) {
-               turfFor1++;
-             }
+        SELF['undo'] = function() {
 
-             for (var _idx in finalEmptySpots[idx].group) {
+            var playedPositions = SELF['rollBackHistoryUsingUndo'](SELF['playedPositions']);
 
-               //dedupe
+            SELF['init']();
 
-               var _x = parseInt(finalEmptySpots[idx].group[_idx][0]);
-               var _y = parseInt(finalEmptySpots[idx].group[_idx][1]);
+            for (var idx in playedPositions) {
+                SELF['processPubNubPayload'](playedPositions[idx], true);
+            }
 
-               finalEmptyCoords[_x + ',' + _y] = {
-                 forPlayer: owners[0],
-                 x: _x,
-                 y: _y
-               };
+            SELF['drawBoardFromStruct']();
 
-             }
+            if (SELF['turfCounting']) {
 
-           } else {
-             // console.error('not the same owner', owners);
-           }
+                SELF['attemptToCalculateAndAssignScores']();
 
+            }
 
-         }
+        };
 
-         for (var _idx in finalEmptyCoords) {
-           var _x = parseInt(finalEmptyCoords[_idx].x);
-           var _y = parseInt(finalEmptyCoords[_idx].y);
-           if (finalEmptyCoords[_idx].forPlayer === 0) {
-             SELF['elementsCache'][_x][_y].className = SELF['elementsCache'][_x][_y].className + ' blackTurf';
-           } else if (finalEmptyCoords[_idx].forPlayer === 1) {
-             SELF['elementsCache'][_x][_y].className = SELF['elementsCache'][_x][_y].className + ' whiteTurf';
-           }
-         }
+        SELF['attemptToCalculateAndAssignScores'] = function() {
 
-         SELF['blackTurf'] = turfFor0;
-         SELF['whiteTurf'] = turfFor1;
+            var finalEmptySpots = [];
 
-         SELF['drawScoresContainer']();
+            var finalEmptyCoords = {};
 
-         return [
-           turfFor0, turfFor1
-         ];
+            var emptySpots = 0;
 
-       };
+            var shouldBreak = false;
 
-       SELF['toggleTurfCount'] = function() {
+            for (var x in SELF['boardStruct']) {
 
-         SELF['turfCounting'] = !SELF['turfCounting'];
+                for (var y in SELF['boardStruct'][x]) {
 
-         if (SELF['turfCounting']) {
-           SELF['attemptToCalculateAndAssignScores']();
-         } else {
-           SELF['drawBoardFromStruct']();
-         }
+                    x = parseInt(x);
+                    y = parseInt(y);
 
-         SELF['drawScoresContainer']();
+                    if (SELF['boardStruct'][x][y] === null) {
 
-       };
+                        emptySpots++;
 
-       SELF['drawScoresContainer'] = function() {
-         SELF['scoresContainerEle'].innerHTML = SELF['templateScoresContainer']({
-           scores: {
-             'blackTurf': SELF['blackTurf'],
-             'whiteTurf': SELF['whiteTurf'],
-             'blackPrisoners': SELF['blackPrisoners'],
-             'whitePrisoners': SELF['whitePrisoners'],
-           },
-           turfIsVisible: SELF['turfCounting']
-         });
-       }
+                        var adjacentPositions = SELF['adjacentPositionFinder'](x, y);
 
-       SELF['init'] = function() {
+                        findLibertyRecurseSafety = 0;
 
-         SELF['elementsCache'] = SELF['elementsCache'] || SELF['createEmptyBoardStruct']();
-         SELF['boardStruct'] = SELF['createEmptyBoardStruct']();
+                        var adjacentPositionsData = SELF['findDataForAdjacentPositions'](
+                            null, [
+                                [x, y]
+                            ],
+                            adjacentPositions
+                        );
 
-         SELF['blackPrisoners'] = 0;
-         SELF['whitePrisoners'] = 0;
-         SELF['currentPlayer'] = 0;
-         SELF['lastPosition'] = {};
+                        finalEmptySpots.push(adjacentPositionsData);
+                    }
 
-         SELF['playedPositions'] = [];
-         SELF['lastPrisonersTaken'] = [];
+                }
+            }
 
-         SELF['whiteTurf'] = 0;
-         SELF['blackTurf'] = 0;
+            var turfFor0 = 0;
+            var turfFor1 = 0;
 
-         SELF['movers'] = {};
+            for (var idx in finalEmptySpots) {
 
-         if (SELF['templatePlayedPositions'] === null) {
+                var owners = [];
 
-           window.onblur = SELF['handleOnBlur'];
-           window.onfocus = SELF['handleOnFocus'];
+                for (var _idx in finalEmptySpots[idx].liberties) {
+                    var _x = parseInt(_idx.split(',')[0]);
+                    var _y = parseInt(_idx.split(',')[1]);
+                    owners.push(SELF['boardStruct'][_x][_y]);
+                }
 
-           SELF['templatePlayedPositions'] = _.template(SELF['templatePlayedPositionsEle'].innerHTML.trim(), {
-             'variable': 'data'
-           });
-           SELF['templateScoresContainer'] = _.template(SELF['templateScoresContainerEle'].innerHTML.trim(), {
-             'variable': 'data'
-           });
+                var sameOwner = (owners.length === _.filter(owners, function(item) {
+                    return item === owners[0];
+                }).length);
 
-           SELF['drawScoresContainer']();
+                if (sameOwner && (owners[0] === 1 || owners[0] === 0)) {
 
-         }
+                    if (owners[0] === 0) {
+                        turfFor0++;
+                    } else if (owners[0] === 1) {
+                        turfFor1++;
+                    }
 
-         SELF['drawBoardFromStruct']();
-         SELF['changeCurrentPlayerText']();
-       };
+                    for (var _idx in finalEmptySpots[idx].group) {
 
-       SELF['init']();
+                        //dedupe
 
-       return SELF;
-     };
-
-     (function init() {
-
-       var lobbyName = (document.location.hash.match(/room=([^&]+)/) || ['']).slice(-1)[0] || randomString(5);
-
-       var boardSize = parseInt((document.location.hash.match(/boardSize=([^&]+)/) || ['']).slice(-1)[0]) || 9;
+                        var _x = parseInt(finalEmptySpots[idx].group[_idx][0]);
+                        var _y = parseInt(finalEmptySpots[idx].group[_idx][1]);
 
-       var historyPlayBackSpeed = parseInt((document.location.hash.match(/historyPlayBackSpeed=([^&]+)/) || ['']).slice(-1)[0] || 0);
-
-       if (boardSize > 19) {
-         boardSize = 19;
-       } else if (boardSize < 3) {
-         boardSize = 3;
-       }
-
-       var hashString = 'room=' + lobbyName + '&boardSize=' + boardSize;
-
-       if (historyPlayBackSpeed !== 0) {
-         hashString = hashString + '&historyPlayBackSpeed=' + historyPlayBackSpeed;
-       }
-
-       document.location.hash = hashString;
-
-       var lobbyNameLink = document.getElementById('lobby_name_link');
-       lobbyNameLink.innerHTML = lobbyName;
-       lobbyNameLink.href = '#' + hashString;
-
-       var VERSION = '0.0.2';
-
-       var pubnubInstance = PUBNUB.init({
-         'subscribe_key': 'sub-c-cbcff300-bb84-11e3-b6e0-02ee2ddab7fe',
-         'publish_key': 'pub-c-01bb4e6e-4ad8-4c62-9b72-5278a11cf9e5'
-       });
-
-       var pubnubUUID = PUBNUB.get_uuid();
-
-       var pubnubDataChannel = 'go-game-' + VERSION + '-' + lobbyName + '-' + boardSize;
-
-       var GO = CREATE_GO({
-         'containerEle': document.getElementById('game'),
-         'playedPositionsEle': document.getElementById('played_positions'),
-         'templatePlayedPositionsEle': document.getElementById('template_played_positions'),
-         'templateScoresContainerEle': document.getElementById('template_scores_container'),
-         'scoresContainerEle': document.getElementById('scores_container'),
-         'currentPlayerEle': document.getElementById('current_player'),
-         'youArePlayerEle': document.getElementById('you_are_player'),
-         'lobbyName': lobbyName,
-         'boardSize': boardSize,
-         'pubnubUUID': pubnubUUID,
-         'clickCallback': function(x, y, forPlayer) {
-           pubnubInstance.publish({
-             'channel': pubnubDataChannel,
-             'message': {
-               'type': 'move',
-               'forPlayer': forPlayer,
-               'x': x,
-               'y': y,
-               'pubnubUUID': pubnubUUID,
-               'time': (new Date().getTime())
-             }
-           });
-         },
-         'passCallback': function() {
-           if (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] !== pubnubUUID) {
-             alert('You are not allowed to pass for another player.');
-             return;
-           }
-
-           if (confirm('Are you sure you want to Pass?')) {
-             pubnubInstance.publish({
-               'channel': pubnubDataChannel,
-               'message': {
-                 'type': 'pass',
-                 'forPlayer': GO.currentPlayer,
-                 'pubnubUUID': pubnubUUID,
-                 'time': (new Date().getTime())
-               }
-             });
-           }
-         },
-         'undoCallback': function() {
-           var currentPlayerIsYou = (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] === pubnubUUID);
-           var oppositePlayerIsYou = (GO.movers[GO.getOppositePlayer(GO.currentPlayer)] && GO.movers[GO.getOppositePlayer(GO.currentPlayer)] === pubnubUUID);
-
-           if (currentPlayerIsYou === true && oppositePlayerIsYou === false) {
-             alert('You are only allowed to undo your own move.');
-             return;
-           }
-
-           if (confirm('Are you sure you want to Undo?')) {
-             pubnubInstance.publish({
-               'channel': pubnubDataChannel,
-               'message': {
-                 'type': 'undo',
-                 'forPlayer': GO.getOppositePlayer(GO.currentPlayer),
-                 'pubnubUUID': pubnubUUID,
-                 'time': (new Date().getTime())
-               }
-             });
-           }
-         }
-       });
-
-       window.GO = GO;
-
-       var get_all_history = function(args) {
-         var channel = args['channel'],
-           callback = args['callback'],
-           start = 0,
-           count = 100,
-           history = [],
-           params = {
-             channel: channel,
-             count: count,
-             reverse: false,
-             callback: function(messages) {
-               var msgs = messages[0];
-               start = messages[1];
-               params.start = start;
-               PUBNUB.each(msgs.reverse(), function(m) {
-                 history.push(m)
-               });
-               if (msgs.length < count) return callback(history.reverse());
-               count = 100;
-               add_messages();
-             }
-           };
-
-         add_messages();
-
-         function add_messages() {
-           pubnubInstance.history(params)
-         }
-       };
-
-       get_all_history({
-         'channel': pubnubDataChannel,
-         'callback': function(messages) {
-           if (messages.length) {
-
-             messages = GO.rollBackHistoryUsingUndo(messages);
-
-             if (historyPlayBackSpeed === 0) {
-
-               for (var idx in messages) {
-                 GO.processPubNubPayload(messages[idx], true);
-               }
-
-             } else {
-
-               var handleMessagesRecursively = function() {
-                 if (messages.length === 0) {
-                   return;
-                 }
-                 var message = messages.shift();
-                 GO.processPubNubPayload(message, true);
-                 setTimeout(handleMessagesRecursively, historyPlayBackSpeed);
-               };
-
-               handleMessagesRecursively();
-
-             }
-
-           }
-         },
-         'error': function() {}
-       });
-
-       pubnubInstance.subscribe({
-         'channel': pubnubDataChannel,
-         'callback': function(m) {
-           GO.processPubNubPayload(m, false);
-         }
-       });
-
-     }());
-
-   }());
+                        finalEmptyCoords[_x + ',' + _y] = {
+                            forPlayer: owners[0],
+                            x: _x,
+                            y: _y
+                        };
+
+                    }
+
+                } else {
+                    // console.error('not the same owner', owners);
+                }
+
+
+            }
+
+            for (var _idx in finalEmptyCoords) {
+                var _x = parseInt(finalEmptyCoords[_idx].x);
+                var _y = parseInt(finalEmptyCoords[_idx].y);
+                if (finalEmptyCoords[_idx].forPlayer === 0) {
+                    SELF['elementsCache'][_x][_y].className = SELF['elementsCache'][_x][_y].className + ' blackTurf';
+                } else if (finalEmptyCoords[_idx].forPlayer === 1) {
+                    SELF['elementsCache'][_x][_y].className = SELF['elementsCache'][_x][_y].className + ' whiteTurf';
+                }
+            }
+
+            SELF['blackTurf'] = turfFor0;
+            SELF['whiteTurf'] = turfFor1;
+
+            SELF['drawScoresContainer']();
+
+            return [
+                turfFor0, turfFor1
+            ];
+
+        };
+
+        SELF['toggleTurfCount'] = function() {
+
+            SELF['turfCounting'] = !SELF['turfCounting'];
+
+            if (SELF['turfCounting']) {
+                SELF['attemptToCalculateAndAssignScores']();
+            } else {
+                SELF['drawBoardFromStruct']();
+            }
+
+            SELF['drawScoresContainer']();
+
+        };
+
+        SELF['drawScoresContainer'] = function() {
+            SELF['scoresContainerEle'].innerHTML = SELF['templateScoresContainer']({
+                scores: {
+                    'blackTurf': SELF['blackTurf'],
+                    'whiteTurf': SELF['whiteTurf'],
+                    'blackPrisoners': SELF['blackPrisoners'],
+                    'whitePrisoners': SELF['whitePrisoners'],
+                },
+                turfIsVisible: SELF['turfCounting']
+            });
+        }
+
+        SELF['init'] = function() {
+
+            SELF['elementsCache'] = SELF['elementsCache'] || SELF['createEmptyBoardStruct']();
+            SELF['boardStruct'] = SELF['createEmptyBoardStruct']();
+
+            SELF['blackPrisoners'] = 0;
+            SELF['whitePrisoners'] = 0;
+            SELF['currentPlayer'] = 0;
+            SELF['lastPosition'] = {};
+
+            SELF['playedPositions'] = [];
+            SELF['lastPrisonersTaken'] = [];
+
+            SELF['whiteTurf'] = 0;
+            SELF['blackTurf'] = 0;
+
+            SELF['movers'] = {};
+
+            if (SELF['templatePlayedPositions'] === null) {
+
+                window.onblur = SELF['handleOnBlur'];
+                window.onfocus = SELF['handleOnFocus'];
+
+                SELF['templatePlayedPositions'] = _.template(SELF['templatePlayedPositionsEle'].innerHTML.trim(), {
+                    'variable': 'data'
+                });
+                SELF['templateScoresContainer'] = _.template(SELF['templateScoresContainerEle'].innerHTML.trim(), {
+                    'variable': 'data'
+                });
+
+                SELF['drawScoresContainer']();
+
+            }
+
+            SELF['drawBoardFromStruct']();
+            SELF['changeCurrentPlayerText']();
+        };
+
+        SELF['init']();
+
+        return SELF;
+    };
+
+    (function init() {
+
+        var lobbyName = (document.location.hash.match(/room=([^&]+)/) || ['']).slice(-1)[0] || randomString(5);
+
+        var boardSize = parseInt((document.location.hash.match(/boardSize=([^&]+)/) || ['']).slice(-1)[0]) || 9;
+
+        var historyPlayBackSpeed = parseInt((document.location.hash.match(/historyPlayBackSpeed=([^&]+)/) || ['']).slice(-1)[0] || 0);
+
+        if (boardSize > 19) {
+            boardSize = 19;
+        } else if (boardSize < 3) {
+            boardSize = 3;
+        }
+
+        var hashString = 'room=' + lobbyName + '&boardSize=' + boardSize;
+
+        if (historyPlayBackSpeed !== 0) {
+            hashString = hashString + '&historyPlayBackSpeed=' + historyPlayBackSpeed;
+        }
+
+        document.location.hash = hashString;
+
+        var lobbyNameLink = document.getElementById('lobby_name_link');
+        lobbyNameLink.innerHTML = lobbyName;
+        lobbyNameLink.href = '#' + hashString;
+
+        var VERSION = '0.0.2';
+        var subscribe_key = 'sub-c-cbcff300-bb84-11e3-b6e0-02ee2ddab7fe';
+        var publish_key = 'pub-c-01bb4e6e-4ad8-4c62-9b72-5278a11cf9e5';
+
+        var pubnubUUID = db['get'](subscribe_key + 'uuid');
+
+        if (pubnubUUID === null) {
+            pubnubUUID = uuid();
+            db['set'](subscribe_key + 'uuid', pubnubUUID);
+        }
+
+
+        pubnubInstance = new PubNub({
+            'subscribe_key': subscribe_key,
+            'publish_key': publish_key,
+            'uuid': pubnubUUID,
+            'ssl': location.protocol === 'https:'
+        })
+
+
+        var pubnubDataChannel = 'go-game-' + VERSION + '-' + lobbyName + '-' + boardSize;
+
+        var GO = CREATE_GO({
+            'containerEle': document.getElementById('game'),
+            'playedPositionsEle': document.getElementById('played_positions'),
+            'templatePlayedPositionsEle': document.getElementById('template_played_positions'),
+            'templateScoresContainerEle': document.getElementById('template_scores_container'),
+            'scoresContainerEle': document.getElementById('scores_container'),
+            'currentPlayerEle': document.getElementById('current_player'),
+            'youArePlayerEle': document.getElementById('you_are_player'),
+            'lobbyName': lobbyName,
+            'boardSize': boardSize,
+            'pubnubUUID': pubnubUUID,
+            'clickCallback': function(x, y, forPlayer) {
+                pubnubInstance.publish({
+                    'channel': pubnubDataChannel,
+                    'message': {
+                        'type': 'move',
+                        'forPlayer': forPlayer,
+                        'x': x,
+                        'y': y,
+                        'pubnubUUID': pubnubUUID,
+                        'time': (new Date().getTime())
+                    }
+                });
+            },
+            'passCallback': function() {
+                if (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] !== pubnubUUID) {
+                    alert('You are not allowed to pass for another player.');
+                    return;
+                }
+
+                if (confirm('Are you sure you want to Pass?')) {
+                    pubnubInstance.publish({
+                        'channel': pubnubDataChannel,
+                        'message': {
+                            'type': 'pass',
+                            'forPlayer': GO.currentPlayer,
+                            'pubnubUUID': pubnubUUID,
+                            'time': (new Date().getTime())
+                        }
+                    });
+                }
+            },
+            'undoCallback': function() {
+                var currentPlayerIsYou = (GO.movers[GO.currentPlayer] && GO.movers[GO.currentPlayer] === pubnubUUID);
+                var oppositePlayerIsYou = (GO.movers[GO.getOppositePlayer(GO.currentPlayer)] && GO.movers[GO.getOppositePlayer(GO.currentPlayer)] === pubnubUUID);
+
+                if (currentPlayerIsYou === true && oppositePlayerIsYou === false) {
+                    alert('You are only allowed to undo your own move.');
+                    return;
+                }
+
+                if (confirm('Are you sure you want to Undo?')) {
+                    pubnubInstance.publish({
+                        'channel': pubnubDataChannel,
+                        'message': {
+                            'type': 'undo',
+                            'forPlayer': GO.getOppositePlayer(GO.currentPlayer),
+                            'pubnubUUID': pubnubUUID,
+                            'time': (new Date().getTime())
+                        }
+                    });
+                }
+            }
+        });
+
+        window.GO = GO;
+
+        var get_all_history = function(args) {
+            var channel = args['channel'],
+                callback = args['callback'],
+                start = 0,
+                count = 25,
+                history = [],
+                params = {
+                    channels: [channel],
+                    count: count,
+                    start: 0
+                }
+            inner_callback = function(res) {
+                if (res && 'channels' in res && channel in res.channels) {
+                    params.start = res.channels[channel][0].timetoken
+                    _.each(res.channels[channel].reverse(), function(m) {
+                        history.push(m.message)
+                    });
+                    if (res.channels[channel].length < count) {
+                        return callback(history.reverse());
+                    }
+                    add_messages(inner_callback);
+                } else {
+                    return callback(history.reverse());
+                }
+            };
+
+            add_messages(inner_callback);
+
+            function add_messages(cb) {
+                pubnubInstance.fetchMessages(params).then(function history(res) {
+                    cb(res);
+                });
+            }
+        };
+
+        get_all_history({
+            'channel': pubnubDataChannel,
+            'callback': function(messages) {
+                if (messages.length) {
+
+                    messages = GO.rollBackHistoryUsingUndo(messages);
+
+                    if (historyPlayBackSpeed === 0) {
+
+                        for (var idx in messages) {
+                            GO.processPubNubPayload(messages[idx], true);
+                        }
+
+                    } else {
+
+                        var handleMessagesRecursively = function() {
+                            if (messages.length === 0) {
+                                return;
+                            }
+                            var message = messages.shift();
+                            GO.processPubNubPayload(message, true);
+                            setTimeout(handleMessagesRecursively, historyPlayBackSpeed);
+                        };
+
+                        handleMessagesRecursively();
+
+                    }
+
+                }
+            }
+        });
+
+        pubnubInstance.addListener({
+            message: function(m) {
+                GO.processPubNubPayload(m.message, false);
+            }
+        });
+
+        pubnubInstance.subscribe({
+            channels: [pubnubDataChannel]
+        });
+
+    }());
+
+}());
